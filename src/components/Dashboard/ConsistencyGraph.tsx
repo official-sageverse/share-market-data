@@ -41,12 +41,6 @@ export function ConsistencyGraph() {
     return colors[level as keyof typeof colors] || 'bg-gray-100';
   };
 
-  const getLevelLabel = (level: number): string => {
-    if (level === 0) return 'No trades';
-    if (level > 0) return `Profit: Level ${level}`;
-    return `Loss: Level ${Math.abs(level)}`;
-  };
-
   const totalTradingDays = consistencyData.filter(d => d.trades > 0).length;
   const profitableDays = consistencyData.filter(d => d.pnl > 0).length;
   const consistencyRate = totalTradingDays > 0 ? (profitableDays / totalTradingDays) * 100 : 0;
@@ -55,12 +49,14 @@ export function ConsistencyGraph() {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+    <div className="bg-white shadow-sm rounded-xl border border-gray-200">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Calendar className="h-5 w-5 text-blue-600 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Trading Consistency</h3>
+            <div className="p-2 bg-blue-100 rounded-lg mr-3">
+              <Calendar className="h-5 w-5 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Trading Consistency</h3>
           </div>
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center">
@@ -71,21 +67,21 @@ export function ConsistencyGraph() {
               <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
               <span className="text-gray-600">{totalTradingDays - profitableDays} loss days</span>
             </div>
-            <div className="text-gray-600">
+            <div className="text-gray-600 font-medium">
               {consistencyRate.toFixed(1)}% win rate
             </div>
           </div>
         </div>
       </div>
       
-      <div className="px-6 py-4">
-        <div className="mb-4">
-          <p className="text-sm text-gray-500 mb-2">
+      <div className="px-6 py-6">
+        <div className="mb-6">
+          <p className="text-sm text-gray-500 mb-3">
             Each square represents a trading day. Hover to see details.
           </p>
           
           {/* Legend */}
-          <div className="flex items-center space-x-4 text-xs text-gray-500 mb-4">
+          <div className="flex items-center space-x-4 text-xs text-gray-500 mb-6">
             <span>Less</span>
             <div className="flex space-x-1">
               <div className="w-3 h-3 bg-gray-100 rounded-sm"></div>
@@ -163,18 +159,18 @@ export function ConsistencyGraph() {
         </div>
 
         {/* Summary Stats */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="text-center">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
             <div className="text-2xl font-bold text-gray-900">{totalTradingDays}</div>
-            <div className="text-sm text-gray-500">Trading Days</div>
+            <div className="text-sm text-gray-600">Trading Days</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{profitableDays}</div>
-            <div className="text-sm text-gray-500">Profitable Days</div>
+            <div className="text-sm text-gray-600">Profitable Days</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{consistencyRate.toFixed(1)}%</div>
-            <div className="text-sm text-gray-500">Daily Win Rate</div>
+            <div className="text-sm text-gray-600">Daily Win Rate</div>
           </div>
         </div>
       </div>
