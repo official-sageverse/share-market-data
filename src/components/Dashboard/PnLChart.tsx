@@ -11,11 +11,13 @@ export function PnLChart() {
   
   if (closedTrades.length === 0) {
     return (
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+      <div className="bg-white shadow-sm rounded-xl border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center">
-            <BarChart3 className="h-5 w-5 text-blue-600 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Profit & Loss Chart</h3>
+            <div className="p-2 bg-blue-100 rounded-lg mr-3">
+              <BarChart3 className="h-5 w-5 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Profit & Loss Chart</h3>
           </div>
         </div>
         <div className="px-6 py-12 text-center">
@@ -65,46 +67,48 @@ export function PnLChart() {
   const losingTrades = chartData.filter(d => d.pnl < 0).length;
 
   return (
-    <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+    <div className="bg-white shadow-sm rounded-xl border border-gray-200">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <BarChart3 className="h-5 w-5 text-blue-600 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Profit & Loss Chart</h3>
+            <div className="p-2 bg-blue-100 rounded-lg mr-3">
+              <BarChart3 className="h-5 w-5 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Profit & Loss Chart</h3>
           </div>
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
               <span className="text-gray-600">{winningTrades} wins</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
               <span className="text-gray-600">{losingTrades} losses</span>
             </div>
           </div>
         </div>
       </div>
       
-      <div className="px-6 py-4">
+      <div className="px-6 py-6">
         {/* Summary Stats */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-          <div className="text-center">
+          <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
             <div className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(totalPnL, portfolio.currency)}
             </div>
-            <div className="text-sm text-gray-500">Total P&L</div>
+            <div className="text-sm text-gray-600">Total P&L</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">
               {formatCurrency(Math.max(...chartData.map(d => d.cumulative), 0), portfolio.currency)}
             </div>
-            <div className="text-sm text-gray-500">Peak Profit</div>
+            <div className="text-sm text-gray-600">Peak Profit</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg">
             <div className="text-2xl font-bold text-red-600">
               {formatCurrency(Math.min(...chartData.map(d => d.cumulative), 0), portfolio.currency)}
             </div>
-            <div className="text-sm text-gray-500">Max Drawdown</div>
+            <div className="text-sm text-gray-600">Max Drawdown</div>
           </div>
         </div>
 
@@ -127,7 +131,7 @@ export function PnLChart() {
                 <div key={index} className="flex flex-col items-center group relative flex-1 max-w-8">
                   {/* Tooltip */}
                   <div className="absolute bottom-full mb-2 hidden group-hover:block z-10">
-                    <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
                       <div className="font-medium">{data.asset}</div>
                       <div>Trade: {formatCurrency(data.pnl, portfolio.currency)}</div>
                       <div>Total: {formatCurrency(data.cumulative, portfolio.currency)}</div>
@@ -159,30 +163,6 @@ export function PnLChart() {
           <div className="flex justify-between mt-2 ml-16 text-xs text-gray-500">
             <span>Trade 1</span>
             <span>Trade {chartData.length}</span>
-          </div>
-        </div>
-
-        {/* Recent Trades */}
-        <div className="mt-6">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Recent Trades</h4>
-          <div className="space-y-2">
-            {chartData.slice(-5).reverse().map((data, index) => (
-              <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center">
-                  <div className={`w-2 h-2 rounded-full mr-3 ${data.pnl >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <span className="font-medium text-gray-900">{data.asset}</span>
-                  <span className="text-gray-500 text-sm ml-2">{new Date(data.date).toLocaleDateString()}</span>
-                </div>
-                <div className="text-right">
-                  <div className={`font-medium ${data.pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {data.pnl >= 0 ? '+' : ''}{formatCurrency(data.pnl, portfolio.currency)}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Total: {formatCurrency(data.cumulative, portfolio.currency)}
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

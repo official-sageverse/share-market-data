@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, DollarSign, X, Save } from 'lucide-react';
+import { Clock, DollarSign, X, Save, TrendingUp, TrendingDown } from 'lucide-react';
 import { useTradingData } from '../../hooks/useTradingData';
 import { formatCurrency, calculatePnL } from '../../utils/calculations';
 
@@ -33,9 +33,6 @@ export function OpenTrades() {
 
     updateTrade(closingTrade, updatedTrade);
     
-    // Update portfolio balance
-    // This would be handled in the updateTrade function in a real app
-    
     setClosingTrade(null);
     setExitPrice('');
     
@@ -49,14 +46,16 @@ export function OpenTrades() {
 
   if (openTrades.length === 0) {
     return (
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+      <div className="bg-white shadow-sm rounded-xl border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center">
-            <Clock className="h-5 w-5 text-orange-600 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Open Trades</h3>
+            <div className="p-2 bg-orange-100 rounded-lg mr-3">
+              <Clock className="h-5 w-5 text-orange-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Open Trades</h3>
           </div>
         </div>
-        <div className="px-6 py-8 text-center">
+        <div className="px-6 py-12 text-center">
           <Clock className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No open trades</h3>
           <p className="mt-1 text-sm text-gray-500">
@@ -68,31 +67,38 @@ export function OpenTrades() {
   }
 
   return (
-    <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+    <div className="bg-white shadow-sm rounded-xl border border-gray-200">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Clock className="h-5 w-5 text-orange-600 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Open Trades</h3>
+            <div className="p-2 bg-orange-100 rounded-lg mr-3">
+              <Clock className="h-5 w-5 text-orange-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Open Trades</h3>
           </div>
-          <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-            {openTrades.length} open
+          <span className="bg-orange-100 text-orange-800 text-xs font-medium px-3 py-1 rounded-full">
+            {openTrades.length} active
           </span>
         </div>
       </div>
       
-      <div className="px-6 py-4">
+      <div className="px-6 py-6">
         <div className="space-y-4">
           {openTrades.map((trade) => (
-            <div key={trade.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
+            <div key={trade.id} className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all duration-200">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <div className={`w-3 h-3 rounded-full mr-3 ${
+                  <div className={`w-4 h-4 rounded-full mr-3 ${
                     trade.direction === 'long' ? 'bg-green-500' : 'bg-red-500'
                   }`}></div>
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900">{trade.asset}</h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 flex items-center">
+                      {trade.direction === 'long' ? (
+                        <TrendingUp className="h-4 w-4 mr-1 text-green-500" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 mr-1 text-red-500" />
+                      )}
                       {trade.direction.toUpperCase()} • {trade.strategy}
                     </p>
                   </div>
@@ -106,19 +112,19 @@ export function OpenTrades() {
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
+                <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-xs text-gray-500">Position Size</div>
-                  <div className="font-medium">{trade.positionSize.toLocaleString()}</div>
+                  <div className="font-medium">{trade.positionSize.toLocaleString()} units</div>
                 </div>
-                <div>
-                  <div className="text-xs text-gray-500">Date</div>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="text-xs text-gray-500">Date Opened</div>
                   <div className="font-medium">{new Date(trade.date).toLocaleDateString()}</div>
                 </div>
               </div>
 
               {/* Close Trade Section */}
               {closingTrade === trade.id ? (
-                <div className="bg-gray-50 rounded-lg p-4 border-2 border-blue-200">
+                <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
                   <h5 className="font-medium text-gray-900 mb-3">Close Trade</h5>
                   <div className="space-y-4">
                     <div>
@@ -174,7 +180,7 @@ export function OpenTrades() {
               ) : (
                 <button
                   onClick={() => handleCloseTrade(trade.id)}
-                  className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                 >
                   <DollarSign className="h-4 w-4 mr-2" />
                   Close Trade
