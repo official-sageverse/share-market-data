@@ -105,6 +105,10 @@ export function useTradingData() {
     ));
   };
 
+  const deleteGoal = (id: string) => {
+    setGoals(prev => prev.filter(goal => goal.id !== id));
+  };
+
   const addJournalEntry = (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => {
     const newEntry: JournalEntry = {
       ...entry,
@@ -176,6 +180,7 @@ export function useTradingData() {
     deleteTrade,
     addGoal,
     updateGoal,
+    deleteGoal,
     addJournalEntry,
     addAsset,
     updateAsset,
