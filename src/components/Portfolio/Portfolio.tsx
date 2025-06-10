@@ -69,7 +69,7 @@ export function Portfolio() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Current Balance"
-          value={formatCurrency(portfolio.currentBalance)}
+          value={formatCurrency(portfolio.currentBalance, portfolio.currency)}
           change={`${totalReturn >= 0 ? '+' : ''}${formatPercent(totalReturn)}`}
           changeType={totalReturn >= 0 ? 'positive' : 'negative'}
           icon={DollarSign}
@@ -78,14 +78,14 @@ export function Portfolio() {
         
         <MetricCard
           title="Initial Capital"
-          value={formatCurrency(portfolio.initialCapital)}
+          value={formatCurrency(portfolio.initialCapital, portfolio.currency)}
           icon={DollarSign}
           description="Starting capital"
         />
         
         <MetricCard
           title="Total P&L"
-          value={formatCurrency(totalPnL)}
+          value={formatCurrency(totalPnL, portfolio.currency)}
           changeType={totalPnL >= 0 ? 'positive' : 'negative'}
           icon={totalPnL >= 0 ? TrendingUp : TrendingDown}
           description="Profit/Loss from trading"
@@ -93,7 +93,7 @@ export function Portfolio() {
         
         <MetricCard
           title="Max Daily Loss"
-          value={formatCurrency(portfolio.maxDailyLoss)}
+          value={formatCurrency(portfolio.maxDailyLoss, portfolio.currency)}
           change={`${portfolio.maxDailyLossPercentage}% of capital`}
           icon={AlertTriangle}
           description="Risk management limit"
@@ -102,12 +102,12 @@ export function Portfolio() {
 
       {/* Transactions Section */}
       <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">Account Transactions</h3>
             <button
               onClick={() => setShowTransaction(true)}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Transaction
@@ -130,7 +130,7 @@ export function Portfolio() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Amount</label>
+                <label className="block text-sm font-medium text-gray-700">Amount ({portfolio.currency})</label>
                 <input
                   type="number"
                   step="0.01"
@@ -153,7 +153,7 @@ export function Portfolio() {
               <div className="flex items-end space-x-2">
                 <button
                   onClick={handleTransaction}
-                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                  className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
                 >
                   Add
                 </button>
@@ -182,7 +182,7 @@ export function Portfolio() {
                         <p className="text-sm text-gray-900">{deposit.description}</p>
                         <p className="text-xs text-gray-500">{new Date(deposit.date).toLocaleDateString()}</p>
                       </div>
-                      <span className="text-sm font-medium text-green-600">{formatCurrency(deposit.amount)}</span>
+                      <span className="text-sm font-medium text-green-600">{formatCurrency(deposit.amount, portfolio.currency)}</span>
                     </div>
                   ))
                 )}
@@ -190,7 +190,7 @@ export function Portfolio() {
               <div className="mt-3 pt-3 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-gray-900">Total Deposits:</span>
-                  <span className="text-sm font-medium text-green-600">{formatCurrency(totalDeposits)}</span>
+                  <span className="text-sm font-medium text-green-600">{formatCurrency(totalDeposits, portfolio.currency)}</span>
                 </div>
               </div>
             </div>
@@ -207,7 +207,7 @@ export function Portfolio() {
                         <p className="text-sm text-gray-900">{withdrawal.description}</p>
                         <p className="text-xs text-gray-500">{new Date(withdrawal.date).toLocaleDateString()}</p>
                       </div>
-                      <span className="text-sm font-medium text-red-600">-{formatCurrency(withdrawal.amount)}</span>
+                      <span className="text-sm font-medium text-red-600">-{formatCurrency(withdrawal.amount, portfolio.currency)}</span>
                     </div>
                   ))
                 )}
@@ -215,7 +215,7 @@ export function Portfolio() {
               <div className="mt-3 pt-3 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-gray-900">Total Withdrawals:</span>
-                  <span className="text-sm font-medium text-red-600">{formatCurrency(totalWithdrawals)}</span>
+                  <span className="text-sm font-medium text-red-600">{formatCurrency(totalWithdrawals, portfolio.currency)}</span>
                 </div>
               </div>
             </div>
@@ -225,14 +225,14 @@ export function Portfolio() {
 
       {/* Risk Management Settings */}
       <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-50 to-orange-50">
           <h3 className="text-lg font-medium text-gray-900">Risk Management Settings</h3>
           <p className="text-sm text-gray-500">Set daily loss limits to protect your capital</p>
         </div>
         <div className="px-6 py-4">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Max Daily Loss ($)</label>
+              <label className="block text-sm font-medium text-gray-700">Max Daily Loss ({portfolio.currency})</label>
               <input
                 type="number"
                 step="0.01"
@@ -256,7 +256,7 @@ export function Portfolio() {
             <div className="flex items-end">
               <button
                 onClick={handleRiskSettingsUpdate}
-                className="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 Update Settings
               </button>

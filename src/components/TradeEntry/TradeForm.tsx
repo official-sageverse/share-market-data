@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Save, X } from 'lucide-react';
+import { PlusCircle, Save, X, Search, Star } from 'lucide-react';
 import { useTradingData } from '../../hooks/useTradingData';
 import { Trade } from '../../types';
 import { calculatePnL } from '../../utils/calculations';
@@ -17,15 +17,17 @@ const strategies = [
 ];
 
 const emotionalStates = [
-  { value: 'confident', label: 'Confident' },
-  { value: 'nervous', label: 'Nervous' },
-  { value: 'neutral', label: 'Neutral' },
-  { value: 'excited', label: 'Excited' },
-  { value: 'frustrated', label: 'Frustrated' },
+  { value: 'confident', label: 'Confident', color: 'bg-green-100 text-green-800' },
+  { value: 'nervous', label: 'Nervous', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'neutral', label: 'Neutral', color: 'bg-gray-100 text-gray-800' },
+  { value: 'excited', label: 'Excited', color: 'bg-blue-100 text-blue-800' },
+  { value: 'frustrated', label: 'Frustrated', color: 'bg-red-100 text-red-800' },
 ];
 
 export function TradeForm() {
-  const { addTrade } = useTradingData();
+  const { addTrade, assets } = useTradingData();
+  const [showAssetSearch, setShowAssetSearch] = useState(false);
+  const [assetSearchTerm, setAssetSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
@@ -110,6 +112,19 @@ export function TradeForm() {
     }
   };
 
+  const selectAsset = (symbol: string) => {
+    handleInputChange('asset', symbol);
+    setShowAssetSearch(false);
+    setAssetSearchTerm('');
+  };
+
+  const filteredAssets = assets.filter(asset => 
+    asset.symbol.toLowerCase().includes(assetSearchTerm.toLowerCase()) ||
+    asset.name.toLowerCase().includes(assetSearchTerm.toLowerCase())
+  );
+
+  const favoriteAssets = assets.filter(asset => asset.isActive);
+
   return (
     <div className="space-y-6">
       <div>
@@ -120,6 +135,10 @@ export function TradeForm() {
       </div>
 
       <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <h3 className="text-lg font-medium text-gray-900">Trade Information</h3>
+        </div>
+        
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Basic Trade Info */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -145,16 +164,94 @@ export function TradeForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Asset *</label>
-              <input
-                type="text"
-                placeholder="e.g., AAPL, TSLA, SPY"
-                value={formData.asset}
-                onChange={(e) => handleInputChange('asset', e.target.value)}
-                className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                  errors.asset ? 'border-red-300' : ''
-                }`}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="e.g., AAPL, TSLA, SPY"
+                  value={formData.asset}
+                  onChange={(e) => handleInputChange('asset', e.target.value)}
+                  onFocus={() => setShowAssetSearch(true)}
+                  className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                    errors.asset ? 'border-red-300' : ''
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAssetSearch(!showAssetSearch)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+              </div>
               {errors.asset && <p className="mt-1 text-sm text-red-600">{errors.asset}</p>}
+              
+              {/* Asset Search Dropdown */}
+              {showAssetSearch && (
+                <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                  <div className="px-3 py-2 border-b border-gray-200">
+                    <input
+                      type="text"
+                      placeholder="Search assets..."
+                      value={assetSearchTerm}
+                      onChange={(e) => setAssetSearchTerm(e.target.value)}
+                      className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  
+                  {/* Favorite Assets */}
+                  {favoriteAssets.length > 0 && (
+                    <div>
+                      <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50 flex items-center">
+                        <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                        Favorites
+                      </div>
+                      {favoriteAssets.slice(0, 5).map(asset => (
+                        <button
+                          key={asset.id}
+                          type="button"
+                          onClick={() => selectAsset(asset.symbol)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center justify-between"
+                        >
+                          <div>
+                            <span className="font-medium">{asset.symbol}</span>
+                            <span className="text-gray-500 text-sm ml-2">{asset.name}</span>
+                          </div>
+                          <span className="text-xs text-gray-400 capitalize">{asset.category}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* All Assets */}
+                  {filteredAssets.length > 0 && (
+                    <div>
+                      <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50">
+                        All Assets
+                      </div>
+                      {filteredAssets.slice(0, 10).map(asset => (
+                        <button
+                          key={asset.id}
+                          type="button"
+                          onClick={() => selectAsset(asset.symbol)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center justify-between"
+                        >
+                          <div>
+                            <span className="font-medium">{asset.symbol}</span>
+                            <span className="text-gray-500 text-sm ml-2">{asset.name}</span>
+                          </div>
+                          <span className="text-xs text-gray-400 capitalize">{asset.category}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {filteredAssets.length === 0 && assetSearchTerm && (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      No assets found. You can still type the symbol manually.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -262,7 +359,7 @@ export function TradeForm() {
           </div>
 
           {/* Trade Status */}
-          <div>
+          <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center">
               <input
                 id="is-open"
@@ -271,10 +368,13 @@ export function TradeForm() {
                 onChange={(e) => handleInputChange('isOpen', e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="is-open" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="is-open" className="ml-2 block text-sm text-gray-900 font-medium">
                 Trade is still open
               </label>
             </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Uncheck this if you've already closed the position and want to enter the exit price
+            </p>
           </div>
 
           {/* Text Areas */}
@@ -316,10 +416,10 @@ export function TradeForm() {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="submit"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
             >
               <Save className="h-4 w-4 mr-2" />
               Save Trade

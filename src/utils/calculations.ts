@@ -94,11 +94,48 @@ function calculateSharpeRatio(returns: number[]): number {
   return stdDev > 0 ? avgReturn / stdDev : 0;
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number, currency: string = 'USD'): string {
+  const currencySymbols: { [key: string]: string } = {
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'CAD': 'C$',
+    'AUD': 'A$',
+    'CHF': 'Fr',
+    'INR': '₹',
+  };
+
+  const symbol = currencySymbols[currency] || '$';
+  
+  // For INR, format with Indian numbering system (lakhs and crores)
+  if (currency === 'INR') {
+    return formatIndianCurrency(amount, symbol);
+  }
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
-  }).format(amount);
+    currency: currency,
+    currencyDisplay: 'symbol',
+  }).format(amount).replace(/[A-Z]{3}/, symbol);
+}
+
+function formatIndianCurrency(amount: number, symbol: string): string {
+  const isNegative = amount < 0;
+  const absAmount = Math.abs(amount);
+  
+  if (absAmount >= 10000000) { // 1 crore
+    const crores = (absAmount / 10000000).toFixed(2);
+    return `${isNegative ? '-' : ''}${symbol}${crores}Cr`;
+  } else if (absAmount >= 100000) { // 1 lakh
+    const lakhs = (absAmount / 100000).toFixed(2);
+    return `${isNegative ? '-' : ''}${symbol}${lakhs}L`;
+  } else if (absAmount >= 1000) { // 1 thousand
+    const thousands = (absAmount / 1000).toFixed(2);
+    return `${isNegative ? '-' : ''}${symbol}${thousands}K`;
+  } else {
+    return `${isNegative ? '-' : ''}${symbol}${absAmount.toFixed(2)}`;
+  }
 }
 
 export function formatPercent(value: number): string {
@@ -107,4 +144,63 @@ export function formatPercent(value: number): string {
     minimumFractionDigits: 1,
     maximumFractionDigits: 2,
   }).format(value / 100);
+}
+
+// Generate consistency graph data (GitHub-style)
+export function generateConsistencyData(trades: Trade[], startDate?: Date): Array<{
+  date: string;
+  pnl: number;
+  level: number;
+  trades: number;
+}> {
+  const endDate = new Date();
+  const start = startDate || new Date(endDate.getTime() - (365 * 24 * 60 * 60 * 1000)); // 1 year ago
+  
+  // Group trades by date
+  const dailyData = new Map<string, { pnl: number; trades: number }>();
+  
+  // Initialize all dates with 0
+  for (let d = new Date(start); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
+    dailyData.set(dateStr, { pnl: 0, trades: 0 });
+  }
+  
+  // Populate with actual trade data
+  trades.filter(t => !t.isOpen && t.exitPrice).forEach(trade => {
+    const date = trade.date;
+    const pnl = trade.pnl || calculatePnL(trade);
+    const existing = dailyData.get(date) || { pnl: 0, trades: 0 };
+    dailyData.set(date, {
+      pnl: existing.pnl + pnl,
+      trades: existing.trades + 1
+    });
+  });
+  
+  // Convert to array and calculate levels
+  const dataArray = Array.from(dailyData.entries()).map(([date, data]) => ({
+    date,
+    pnl: data.pnl,
+    trades: data.trades,
+    level: calculateLevel(data.pnl, data.trades)
+  }));
+  
+  return dataArray.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function calculateLevel(pnl: number, trades: number): number {
+  if (trades === 0) return 0; // No trades
+  if (pnl > 0) {
+    // Profit levels (1-4, green shades)
+    if (pnl >= 1000) return 4; // Dark green
+    if (pnl >= 500) return 3;   // Medium green
+    if (pnl >= 100) return 2;   // Light green
+    return 1;                   // Very light green
+  } else if (pnl < 0) {
+    // Loss levels (-1 to -4, red shades)
+    if (pnl <= -1000) return -4; // Dark red
+    if (pnl <= -500) return -3;  // Medium red
+    if (pnl <= -100) return -2;  // Light red
+    return -1;                   // Very light red
+  }
+  return 0; // Break-even
 }

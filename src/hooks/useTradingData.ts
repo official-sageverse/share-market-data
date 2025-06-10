@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Trade, PortfolioSettings, Goal, JournalEntry, UserSettings } from '../types';
+import { Trade, PortfolioSettings, Goal, JournalEntry, UserSettings, Asset } from '../types';
 
 const defaultPortfolioSettings: PortfolioSettings = {
   initialCapital: 10000,
@@ -47,6 +47,7 @@ export function useTradingData() {
   const [goals, setGoals] = useLocalStorage<Goal[]>('trading-journal-goals', []);
   const [journalEntries, setJournalEntries] = useLocalStorage<JournalEntry[]>('trading-journal-entries', []);
   const [userSettings, setUserSettings] = useLocalStorage<UserSettings>('trading-journal-settings', defaultUserSettings);
+  const [assets, setAssets] = useLocalStorage<Asset[]>('trading-journal-assets', []);
 
   const addTrade = (trade: Omit<Trade, 'id' | 'createdAt'>) => {
     const newTrade: Trade = {
@@ -99,6 +100,25 @@ export function useTradingData() {
     setJournalEntries(prev => [newEntry, ...prev]);
   };
 
+  const addAsset = (asset: Omit<Asset, 'id' | 'createdAt'>) => {
+    const newAsset: Asset = {
+      ...asset,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    setAssets(prev => [newAsset, ...prev]);
+  };
+
+  const updateAsset = (id: string, updates: Partial<Asset>) => {
+    setAssets(prev => prev.map(asset => 
+      asset.id === id ? { ...asset, ...updates } : asset
+    ));
+  };
+
+  const deleteAsset = (id: string) => {
+    setAssets(prev => prev.filter(asset => asset.id !== id));
+  };
+
   const exportData = () => {
     const data = {
       trades,
@@ -106,6 +126,7 @@ export function useTradingData() {
       goals,
       journalEntries,
       userSettings,
+      assets,
       exportDate: new Date().toISOString(),
     };
     return JSON.stringify(data, null, 2);
@@ -119,6 +140,7 @@ export function useTradingData() {
       if (data.goals) setGoals(data.goals);
       if (data.journalEntries) setJournalEntries(data.journalEntries);
       if (data.userSettings) setUserSettings(data.userSettings);
+      if (data.assets) setAssets(data.assets);
       return true;
     } catch (error) {
       console.error('Error importing data:', error);
@@ -132,6 +154,7 @@ export function useTradingData() {
     goals,
     journalEntries,
     userSettings,
+    assets,
     setPortfolio,
     setUserSettings,
     addTrade,
@@ -140,6 +163,9 @@ export function useTradingData() {
     addGoal,
     updateGoal,
     addJournalEntry,
+    addAsset,
+    updateAsset,
+    deleteAsset,
     exportData,
     importData,
   };

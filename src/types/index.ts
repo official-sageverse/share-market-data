@@ -19,6 +19,17 @@ export interface Trade {
   createdAt: string;
 }
 
+export interface Asset {
+  id: string;
+  symbol: string;
+  name: string;
+  category: 'stocks' | 'crypto' | 'forex' | 'commodities' | 'indices' | 'options';
+  exchange?: string;
+  sector?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface PortfolioSettings {
   initialCapital: number;
   currentBalance: number;
