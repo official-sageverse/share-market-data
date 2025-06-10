@@ -20,6 +20,7 @@ const currencies = [
   { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
   { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
   { code: 'CHF', symbol: 'Fr', name: 'Swiss Franc' },
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
 ];
 
 const timezones = [
@@ -33,6 +34,7 @@ const timezones = [
   'Asia/Tokyo',
   'Asia/Shanghai',
   'Asia/Singapore',
+  'Asia/Kolkata',
   'Australia/Sydney',
 ];
 
@@ -174,7 +176,7 @@ export function Settings() {
       {/* Capital & Currency Settings */}
       {activeTab === 'capital' && (
         <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
             <h3 className="text-lg font-medium text-gray-900">Capital & Currency Settings</h3>
             <p className="text-sm text-gray-500">Manage your trading capital and currency preferences</p>
           </div>
@@ -226,7 +228,7 @@ export function Settings() {
             <div className="flex justify-end">
               <button
                 onClick={handleSaveCapitalSettings}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Save Capital Settings
@@ -239,14 +241,14 @@ export function Settings() {
       {/* Risk Management Settings */}
       {activeTab === 'risk' && (
         <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-50 to-orange-50">
             <h3 className="text-lg font-medium text-gray-900">Risk Management Settings</h3>
             <p className="text-sm text-gray-500">Configure your risk limits and trading rules</p>
           </div>
           <div className="px-6 py-4 space-y-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Max Daily Loss ($)</label>
+                <label className="block text-sm font-medium text-gray-700">Max Daily Loss ({portfolio.currency})</label>
                 <input
                   type="number"
                   step="0.01"
@@ -255,7 +257,7 @@ export function Settings() {
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="500.00"
                 />
-                <p className="mt-1 text-xs text-gray-500">Maximum loss allowed per day in dollars</p>
+                <p className="mt-1 text-xs text-gray-500">Maximum loss allowed per day in your currency</p>
               </div>
 
               <div>
@@ -272,7 +274,7 @@ export function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Max Position Size ($)</label>
+                <label className="block text-sm font-medium text-gray-700">Max Position Size ({portfolio.currency})</label>
                 <input
                   type="number"
                   step="0.01"
@@ -281,7 +283,7 @@ export function Settings() {
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="1000.00"
                 />
-                <p className="mt-1 text-xs text-gray-500">Maximum position size in dollars</p>
+                <p className="mt-1 text-xs text-gray-500">Maximum position size in your currency</p>
               </div>
 
               <div>
@@ -342,7 +344,7 @@ export function Settings() {
             <div className="flex justify-end">
               <button
                 onClick={handleSaveRiskSettings}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Save Risk Settings
@@ -355,7 +357,7 @@ export function Settings() {
       {/* Notification Settings */}
       {activeTab === 'notifications' && (
         <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50">
             <h3 className="text-lg font-medium text-gray-900">Notification Settings</h3>
             <p className="text-sm text-gray-500">Configure alerts and reminders</p>
           </div>
@@ -404,7 +406,7 @@ export function Settings() {
             <div className="flex justify-end">
               <button
                 onClick={handleSaveNotificationSettings}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Save Notification Settings
@@ -417,7 +419,7 @@ export function Settings() {
       {/* Trading Hours Settings */}
       {activeTab === 'trading' && (
         <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-teal-50">
             <h3 className="text-lg font-medium text-gray-900">Trading Hours</h3>
             <p className="text-sm text-gray-500">Set your preferred trading schedule</p>
           </div>
@@ -460,7 +462,7 @@ export function Settings() {
             <div className="flex justify-end">
               <button
                 onClick={handleSaveTradingHours}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Save Trading Hours

@@ -10,6 +10,7 @@ import {
   Award
 } from 'lucide-react';
 import { MetricCard } from './MetricCard';
+import { ConsistencyGraph } from './ConsistencyGraph';
 import { useTradingData } from '../../hooks/useTradingData';
 import { calculateAnalytics, formatCurrency, formatPercent } from '../../utils/calculations';
 
@@ -38,7 +39,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Account Balance"
-          value={formatCurrency(portfolio.currentBalance)}
+          value={formatCurrency(portfolio.currentBalance, portfolio.currency)}
           change={`${totalReturn >= 0 ? '+' : ''}${formatPercent(totalReturn)}`}
           changeType={totalReturn >= 0 ? 'positive' : 'negative'}
           icon={DollarSign}
@@ -47,7 +48,7 @@ export function Dashboard() {
         
         <MetricCard
           title="Total P&L"
-          value={formatCurrency(totalPnL)}
+          value={formatCurrency(totalPnL, portfolio.currency)}
           change={`${trades.length} trades`}
           changeType={totalPnL >= 0 ? 'positive' : 'negative'}
           icon={totalPnL >= 0 ? TrendingUp : TrendingDown}
@@ -77,32 +78,35 @@ export function Dashboard() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Average Win"
-          value={formatCurrency(analytics.avgWin)}
+          value={formatCurrency(analytics.avgWin, portfolio.currency)}
           icon={TrendingUp}
           description="Average winning trade"
         />
         
         <MetricCard
           title="Average Loss"
-          value={formatCurrency(analytics.avgLoss)}
+          value={formatCurrency(analytics.avgLoss, portfolio.currency)}
           icon={TrendingDown}
           description="Average losing trade"
         />
         
         <MetricCard
           title="Best Day"
-          value={formatCurrency(analytics.bestDay)}
+          value={formatCurrency(analytics.bestDay, portfolio.currency)}
           icon={Award}
           description="Highest daily profit"
         />
         
         <MetricCard
           title="Max Drawdown"
-          value={formatCurrency(analytics.maxDrawdown)}
+          value={formatCurrency(analytics.maxDrawdown, portfolio.currency)}
           icon={TrendingDown}
           description="Largest peak-to-trough loss"
         />
       </div>
+
+      {/* Trading Consistency Graph */}
+      <ConsistencyGraph />
 
       {/* Monthly Goal Progress */}
       {monthlyGoal && (
@@ -113,7 +117,7 @@ export function Dashboard() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">{monthlyGoal.description}</span>
                 <span className="font-medium">
-                  {formatCurrency(monthlyGoal.current)} / {formatCurrency(monthlyGoal.target)}
+                  {formatCurrency(monthlyGoal.current, portfolio.currency)} / {formatCurrency(monthlyGoal.target, portfolio.currency)}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -184,7 +188,7 @@ export function Dashboard() {
                           <span className={`font-medium ${
                             (trade.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}>
-                            {formatCurrency(trade.pnl || 0)}
+                            {formatCurrency(trade.pnl || 0, portfolio.currency)}
                           </span>
                         )}
                       </td>
