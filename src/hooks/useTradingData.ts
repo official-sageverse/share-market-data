@@ -1,5 +1,6 @@
 import { useLocalStorage } from './useLocalStorage';
 import { Trade, PortfolioSettings, Goal, JournalEntry, UserSettings, Asset } from '../types';
+import { calculatePnL } from '../utils/calculations';
 
 const defaultPortfolioSettings: PortfolioSettings = {
   initialCapital: 10000,
@@ -67,9 +68,22 @@ export function useTradingData() {
   };
 
   const updateTrade = (id: string, updates: Partial<Trade>) => {
-    setTrades(prev => prev.map(trade => 
-      trade.id === id ? { ...trade, ...updates } : trade
-    ));
+    setTrades(prev => prev.map(trade => {
+      if (trade.id === id) {
+        const updatedTrade = { ...trade, ...updates };
+        
+        // If trade is being closed, update portfolio balance
+        if (trade.isOpen && !updatedTrade.isOpen && updatedTrade.pnl !== undefined) {
+          setPortfolio(prevPortfolio => ({
+            ...prevPortfolio,
+            currentBalance: prevPortfolio.currentBalance + updatedTrade.pnl - (updatedTrade.fees || 0),
+          }));
+        }
+        
+        return updatedTrade;
+      }
+      return trade;
+    }));
   };
 
   const deleteTrade = (id: string) => {

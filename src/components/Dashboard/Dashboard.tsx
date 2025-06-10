@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { MetricCard } from './MetricCard';
 import { ConsistencyGraph } from './ConsistencyGraph';
+import { PnLChart } from './PnLChart';
+import { OpenTrades } from './OpenTrades';
 import { useTradingData } from '../../hooks/useTradingData';
 import { calculateAnalytics, formatCurrency, formatPercent } from '../../utils/calculations';
 
@@ -24,7 +26,8 @@ export function Dashboard() {
   const activeGoals = goals.filter(g => g.isActive);
   const monthlyGoal = activeGoals.find(g => g.type === 'monthly');
   
-  const recentTrades = trades.slice(0, 5);
+  const openTrades = trades.filter(t => t.isOpen);
+  const recentTrades = trades.filter(t => !t.isOpen).slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -65,13 +68,19 @@ export function Dashboard() {
         />
         
         <MetricCard
-          title="Profit Factor"
-          value={analytics.profitFactor.toFixed(2)}
-          change={analytics.profitFactor >= 1 ? 'Profitable' : 'Needs improvement'}
-          changeType={analytics.profitFactor >= 1 ? 'positive' : 'negative'}
-          icon={BarChart3}
-          description="Gross profit / Gross loss"
+          title="Open Trades"
+          value={openTrades.length.toString()}
+          change={openTrades.length > 0 ? 'Active positions' : 'No open positions'}
+          changeType={openTrades.length > 0 ? 'neutral' : 'positive'}
+          icon={Clock}
+          description="Currently open positions"
         />
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <PnLChart />
+        <OpenTrades />
       </div>
 
       {/* Additional Metrics */}
@@ -91,10 +100,12 @@ export function Dashboard() {
         />
         
         <MetricCard
-          title="Best Day"
-          value={formatCurrency(analytics.bestDay, portfolio.currency)}
-          icon={Award}
-          description="Highest daily profit"
+          title="Profit Factor"
+          value={analytics.profitFactor.toFixed(2)}
+          change={analytics.profitFactor >= 1 ? 'Profitable' : 'Needs improvement'}
+          changeType={analytics.profitFactor >= 1 ? 'positive' : 'negative'}
+          icon={BarChart3}
+          description="Gross profit / Gross loss"
         />
         
         <MetricCard
@@ -135,12 +146,12 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Recent Trades */}
+      {/* Recent Closed Trades */}
       <div className="bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="px-6 py-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Trades</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Closed Trades</h3>
           {recentTrades.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No trades recorded yet</p>
+            <p className="text-gray-500 text-center py-4">No closed trades yet</p>
           ) : (
             <div className="overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
@@ -157,9 +168,6 @@ export function Dashboard() {
                     </th>
                     <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       P&L
-                    </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
                     </th>
                   </tr>
                 </thead>
@@ -182,23 +190,10 @@ export function Dashboard() {
                         {new Date(trade.date).toLocaleDateString()}
                       </td>
                       <td className="px-3 py-4 whitespace-nowrap text-sm">
-                        {trade.isOpen ? (
-                          <span className="text-gray-500">-</span>
-                        ) : (
-                          <span className={`font-medium ${
-                            (trade.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {formatCurrency(trade.pnl || 0, portfolio.currency)}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          trade.isOpen 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-gray-100 text-gray-800'
+                        <span className={`font-medium ${
+                          (trade.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {trade.isOpen ? 'Open' : 'Closed'}
+                          {formatCurrency(trade.pnl || 0, portfolio.currency)}
                         </span>
                       </td>
                     </tr>
