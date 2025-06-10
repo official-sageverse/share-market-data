@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Save, X, Search, Star } from 'lucide-react';
+import { PlusCircle, Save, Search, Star } from 'lucide-react';
 import { useTradingData } from '../../hooks/useTradingData';
 import { Trade } from '../../types';
 import { calculatePnL } from '../../utils/calculations';
@@ -11,17 +11,9 @@ const strategies = [
   'Breakout',
   'Support/Resistance',
   'Moving Average',
-  'RSI Divergence',
+  'Trend Following',
   'News Trading',
   'Other'
-];
-
-const emotionalStates = [
-  { value: 'confident', label: 'Confident', color: 'bg-green-100 text-green-800' },
-  { value: 'nervous', label: 'Nervous', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'neutral', label: 'Neutral', color: 'bg-gray-100 text-gray-800' },
-  { value: 'excited', label: 'Excited', color: 'bg-blue-100 text-blue-800' },
-  { value: 'frustrated', label: 'Frustrated', color: 'bg-red-100 text-red-800' },
 ];
 
 export function TradeForm() {
@@ -30,19 +22,14 @@ export function TradeForm() {
   const [assetSearchTerm, setAssetSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    time: new Date().toTimeString().slice(0, 5),
     asset: '',
     direction: 'long' as 'long' | 'short',
     entryPrice: '',
     exitPrice: '',
     positionSize: '',
     strategy: '',
-    reasoning: '',
-    marketConditions: '',
-    tags: '',
+    notes: '',
     isOpen: true,
-    fees: '',
-    emotionalState: 'neutral' as const,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -64,19 +51,19 @@ export function TradeForm() {
 
     const trade: Omit<Trade, 'id' | 'createdAt'> = {
       date: formData.date,
-      time: formData.time,
+      time: new Date().toTimeString().slice(0, 5),
       asset: formData.asset.toUpperCase(),
       direction: formData.direction,
       entryPrice: parseFloat(formData.entryPrice),
       exitPrice: formData.exitPrice ? parseFloat(formData.exitPrice) : undefined,
       positionSize: parseFloat(formData.positionSize),
       strategy: formData.strategy,
-      reasoning: formData.reasoning,
-      marketConditions: formData.marketConditions,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      reasoning: formData.notes,
+      marketConditions: '',
+      tags: [],
       isOpen: formData.isOpen,
-      fees: formData.fees ? parseFloat(formData.fees) : 0,
-      emotionalState: formData.emotionalState,
+      fees: 0,
+      emotionalState: 'neutral',
     };
 
     if (!trade.isOpen && trade.exitPrice) {
@@ -88,21 +75,19 @@ export function TradeForm() {
     // Reset form
     setFormData({
       date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
       asset: '',
       direction: 'long',
       entryPrice: '',
       exitPrice: '',
       positionSize: '',
       strategy: '',
-      reasoning: '',
-      marketConditions: '',
-      tags: '',
+      notes: '',
       isOpen: true,
-      fees: '',
-      emotionalState: 'neutral',
     });
     setErrors({});
+    
+    // Show success message
+    alert('Trade added successfully!');
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -127,43 +112,38 @@ export function TradeForm() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Add New Trade</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Record your trade details for analysis and tracking
+      <div className="text-center">
+        <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mb-4">
+          <PlusCircle className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900">Add New Trade</h2>
+        <p className="mt-2 text-lg text-gray-600">
+          Record your trade details quickly and easily
         </p>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h3 className="text-lg font-medium text-gray-900">Trade Information</h3>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Basic Trade Info */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-900">Trade Details</h3>
+            <p className="text-sm text-gray-600 mt-1">Fill in the essential information about your trade</p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Date</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Trade Date</label>
               <input
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleInputChange('date', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Time</label>
-              <input
-                type="time"
-                value={formData.time}
-                onChange={(e) => handleInputChange('time', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Asset *</label>
+            {/* Asset */}
+            <div className="relative">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Asset Symbol *</label>
               <div className="relative">
                 <input
                   type="text"
@@ -171,261 +151,225 @@ export function TradeForm() {
                   value={formData.asset}
                   onChange={(e) => handleInputChange('asset', e.target.value)}
                   onFocus={() => setShowAssetSearch(true)}
-                  className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                    errors.asset ? 'border-red-300' : ''
+                  className={`w-full px-4 py-3 pr-12 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                    errors.asset ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-300'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowAssetSearch(!showAssetSearch)}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <Search className="h-4 w-4" />
+                  <Search className="h-5 w-5" />
                 </button>
               </div>
-              {errors.asset && <p className="mt-1 text-sm text-red-600">{errors.asset}</p>}
+              {errors.asset && <p className="mt-2 text-sm text-red-600 flex items-center">
+                <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                {errors.asset}
+              </p>}
               
               {/* Asset Search Dropdown */}
               {showAssetSearch && (
-                <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                  <div className="px-3 py-2 border-b border-gray-200">
+                <div className="absolute z-10 mt-2 w-full bg-white shadow-2xl max-h-64 rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="p-3 border-b border-gray-100">
                     <input
                       type="text"
                       placeholder="Search assets..."
                       value={assetSearchTerm}
                       onChange={(e) => setAssetSearchTerm(e.target.value)}
-                      className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   
-                  {/* Favorite Assets */}
-                  {favoriteAssets.length > 0 && (
-                    <div>
-                      <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50 flex items-center">
-                        <Star className="h-3 w-3 mr-1 text-yellow-500" />
-                        Favorites
+                  <div className="max-h-48 overflow-y-auto">
+                    {/* Favorite Assets */}
+                    {favoriteAssets.length > 0 && (
+                      <div>
+                        <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50 flex items-center">
+                          <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                          Favorites
+                        </div>
+                        {favoriteAssets.slice(0, 5).map(asset => (
+                          <button
+                            key={asset.id}
+                            type="button"
+                            onClick={() => selectAsset(asset.symbol)}
+                            className="w-full text-left px-3 py-3 hover:bg-blue-50 flex items-center justify-between transition-colors"
+                          >
+                            <div>
+                              <span className="font-medium text-gray-900">{asset.symbol}</span>
+                              <span className="text-gray-500 text-sm ml-2">{asset.name}</span>
+                            </div>
+                            <span className="text-xs text-gray-400 capitalize bg-gray-100 px-2 py-1 rounded-full">{asset.category}</span>
+                          </button>
+                        ))}
                       </div>
-                      {favoriteAssets.slice(0, 5).map(asset => (
-                        <button
-                          key={asset.id}
-                          type="button"
-                          onClick={() => selectAsset(asset.symbol)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center justify-between"
-                        >
-                          <div>
-                            <span className="font-medium">{asset.symbol}</span>
-                            <span className="text-gray-500 text-sm ml-2">{asset.name}</span>
-                          </div>
-                          <span className="text-xs text-gray-400 capitalize">{asset.category}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* All Assets */}
-                  {filteredAssets.length > 0 && (
-                    <div>
-                      <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50">
-                        All Assets
+                    )}
+                    
+                    {/* All Assets */}
+                    {filteredAssets.length > 0 && (
+                      <div>
+                        <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50">
+                          All Assets
+                        </div>
+                        {filteredAssets.slice(0, 10).map(asset => (
+                          <button
+                            key={asset.id}
+                            type="button"
+                            onClick={() => selectAsset(asset.symbol)}
+                            className="w-full text-left px-3 py-3 hover:bg-blue-50 flex items-center justify-between transition-colors"
+                          >
+                            <div>
+                              <span className="font-medium text-gray-900">{asset.symbol}</span>
+                              <span className="text-gray-500 text-sm ml-2">{asset.name}</span>
+                            </div>
+                            <span className="text-xs text-gray-400 capitalize bg-gray-100 px-2 py-1 rounded-full">{asset.category}</span>
+                          </button>
+                        ))}
                       </div>
-                      {filteredAssets.slice(0, 10).map(asset => (
-                        <button
-                          key={asset.id}
-                          type="button"
-                          onClick={() => selectAsset(asset.symbol)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center justify-between"
-                        >
-                          <div>
-                            <span className="font-medium">{asset.symbol}</span>
-                            <span className="text-gray-500 text-sm ml-2">{asset.name}</span>
-                          </div>
-                          <span className="text-xs text-gray-400 capitalize">{asset.category}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {filteredAssets.length === 0 && assetSearchTerm && (
-                    <div className="px-3 py-2 text-sm text-gray-500">
-                      No assets found. You can still type the symbol manually.
-                    </div>
-                  )}
+                    )}
+                    
+                    {filteredAssets.length === 0 && assetSearchTerm && (
+                      <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                        No assets found. You can still type the symbol manually.
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Trade Details */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Direction</label>
-              <select
-                value={formData.direction}
-                onChange={(e) => handleInputChange('direction', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              >
-                <option value="long">Long</option>
-                <option value="short">Short</option>
-              </select>
+            {/* Direction and Strategy */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Direction</label>
+                <select
+                  value={formData.direction}
+                  onChange={(e) => handleInputChange('direction', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                >
+                  <option value="long">Long (Buy)</option>
+                  <option value="short">Short (Sell)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Strategy *</label>
+                <select
+                  value={formData.strategy}
+                  onChange={(e) => handleInputChange('strategy', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                    errors.strategy ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Select strategy</option>
+                  {strategies.map(strategy => (
+                    <option key={strategy} value={strategy}>{strategy}</option>
+                  ))}
+                </select>
+                {errors.strategy && <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                  {errors.strategy}
+                </p>}
+              </div>
             </div>
 
+            {/* Prices */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Entry Price *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.entryPrice}
+                  onChange={(e) => handleInputChange('entryPrice', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                    errors.entryPrice ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-300'
+                  }`}
+                />
+                {errors.entryPrice && <p className="mt-2 text-sm text-red-600 flex items-center">
+                  <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                  {errors.entryPrice}
+                </p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Exit Price</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.exitPrice}
+                  onChange={(e) => handleInputChange('exitPrice', e.target.value)}
+                  disabled={formData.isOpen}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-200"
+                />
+              </div>
+            </div>
+
+            {/* Position Size */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Entry Price *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Position Size *</label>
               <input
                 type="number"
                 step="0.01"
-                placeholder="0.00"
-                value={formData.entryPrice}
-                onChange={(e) => handleInputChange('entryPrice', e.target.value)}
-                className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                  errors.entryPrice ? 'border-red-300' : ''
-                }`}
-              />
-              {errors.entryPrice && <p className="mt-1 text-sm text-red-600">{errors.entryPrice}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Exit Price</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.exitPrice}
-                onChange={(e) => handleInputChange('exitPrice', e.target.value)}
-                disabled={formData.isOpen}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Position Size *</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
+                placeholder="Number of shares/units"
                 value={formData.positionSize}
                 onChange={(e) => handleInputChange('positionSize', e.target.value)}
-                className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                  errors.positionSize ? 'border-red-300' : ''
+                className={`w-full px-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                  errors.positionSize ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.positionSize && <p className="mt-1 text-sm text-red-600">{errors.positionSize}</p>}
+              {errors.positionSize && <p className="mt-2 text-sm text-red-600 flex items-center">
+                <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                {errors.positionSize}
+              </p>}
             </div>
-          </div>
 
-          {/* Strategy and Status */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {/* Trade Status */}
+            <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-xl border border-gray-200">
+              <div className="flex items-center">
+                <input
+                  id="is-open"
+                  type="checkbox"
+                  checked={formData.isOpen}
+                  onChange={(e) => handleInputChange('isOpen', e.target.checked)}
+                  className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all duration-200"
+                />
+                <label htmlFor="is-open" className="ml-3 block text-sm text-gray-900 font-medium">
+                  Trade is still open
+                </label>
+              </div>
+              <p className="mt-2 text-xs text-gray-600">
+                Uncheck this if you've already closed the position and want to enter the exit price
+              </p>
+            </div>
+
+            {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Strategy *</label>
-              <select
-                value={formData.strategy}
-                onChange={(e) => handleInputChange('strategy', e.target.value)}
-                className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                  errors.strategy ? 'border-red-300' : ''
-                }`}
-              >
-                <option value="">Select strategy</option>
-                {strategies.map(strategy => (
-                  <option key={strategy} value={strategy}>{strategy}</option>
-                ))}
-              </select>
-              {errors.strategy && <p className="mt-1 text-sm text-red-600">{errors.strategy}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Emotional State</label>
-              <select
-                value={formData.emotionalState}
-                onChange={(e) => handleInputChange('emotionalState', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              >
-                {emotionalStates.map(state => (
-                  <option key={state.value} value={state.value}>{state.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Fees</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.fees}
-                onChange={(e) => handleInputChange('fees', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Trade Status */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <input
-                id="is-open"
-                type="checkbox"
-                checked={formData.isOpen}
-                onChange={(e) => handleInputChange('isOpen', e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="is-open" className="ml-2 block text-sm text-gray-900 font-medium">
-                Trade is still open
-              </label>
-            </div>
-            <p className="mt-1 text-xs text-gray-500">
-              Uncheck this if you've already closed the position and want to enter the exit price
-            </p>
-          </div>
-
-          {/* Text Areas */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Trade Reasoning</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Notes (Optional)</label>
               <textarea
                 rows={4}
-                placeholder="Why did you enter this trade? What was your analysis?"
-                value={formData.reasoning}
-                onChange={(e) => handleInputChange('reasoning', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Add any notes about this trade..."
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Market Conditions</label>
-              <textarea
-                rows={4}
-                placeholder="Describe the market environment, news events, etc."
-                value={formData.marketConditions}
-                onChange={(e) => handleInputChange('marketConditions', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
+            {/* Submit Button */}
+            <div className="pt-6">
+              <button
+                type="submit"
+                className="w-full inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-semibold rounded-xl shadow-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
+              >
+                <Save className="h-5 w-5 mr-3" />
+                Save Trade
+              </button>
             </div>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tags</label>
-            <input
-              type="text"
-              placeholder="earnings, breakout, support (comma separated)"
-              value={formData.tags}
-              onChange={(e) => handleInputChange('tags', e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-            <p className="mt-1 text-xs text-gray-500">Separate multiple tags with commas</p>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
-            <button
-              type="submit"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Trade
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
