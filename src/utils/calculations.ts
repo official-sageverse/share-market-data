@@ -372,7 +372,7 @@ export function formatPercent(value: number): string {
   }).format(value / 100);
 }
 
-// Generate consistency graph data (GitHub-style)
+// Generate consistency graph data (GitHub-style) with improved visibility
 export function generateConsistencyData(trades: Trade[], startDate?: Date): Array<{
   date: string;
   pnl: number;
@@ -416,19 +416,19 @@ export function generateConsistencyData(trades: Trade[], startDate?: Date): Arra
 function calculateLevel(pnl: number, trades: number): number {
   if (trades === 0) return 0; // No trades
   
-  // Calculate level based on P&L amount
+  // Calculate level based on P&L amount with better thresholds for visibility
   if (pnl > 0) {
-    // Profit levels (1-4, green shades)
-    if (pnl >= 1000) return 4; // Dark green
-    if (pnl >= 500) return 3;   // Medium green
-    if (pnl >= 100) return 2;   // Light green
+    // Profit levels (1-4, green shades) - lowered thresholds for better visibility
+    if (pnl >= 500) return 4;   // Dark green
+    if (pnl >= 200) return 3;   // Medium green  
+    if (pnl >= 50) return 2;    // Light green
     return 1;                   // Very light green
   } else if (pnl < 0) {
-    // Loss levels (-1 to -4, red shades)
-    if (pnl <= -1000) return -4; // Dark red
-    if (pnl <= -500) return -3;  // Medium red
-    if (pnl <= -100) return -2;  // Light red
-    return -1;                   // Very light red
+    // Loss levels (-1 to -4, red shades) - lowered thresholds for better visibility
+    if (pnl <= -500) return -4; // Dark red
+    if (pnl <= -200) return -3; // Medium red
+    if (pnl <= -50) return -2;  // Light red
+    return -1;                  // Very light red
   }
   return 0; // Break-even
 }
