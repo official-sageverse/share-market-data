@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -20,6 +20,28 @@ import { calculateAnalytics, formatCurrency, formatPercent, calculateGoalAnalyti
 
 export function Dashboard() {
   const { trades, portfolio, goals } = useTradingData();
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Force refresh when data changes
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+
+    // Listen for data update events
+    window.addEventListener('tradesUpdated', handleDataUpdate);
+    window.addEventListener('portfolioUpdated', handleDataUpdate);
+    window.addEventListener('goalsUpdated', handleDataUpdate);
+    window.addEventListener('assetsUpdated', handleDataUpdate);
+
+    return () => {
+      window.removeEventListener('tradesUpdated', handleDataUpdate);
+      window.removeEventListener('portfolioUpdated', handleDataUpdate);
+      window.removeEventListener('goalsUpdated', handleDataUpdate);
+      window.removeEventListener('assetsUpdated', handleDataUpdate);
+    };
+  }, []);
+
   const analytics = calculateAnalytics(trades);
   
   const totalPnL = portfolio.currentBalance - portfolio.initialCapital;
@@ -44,7 +66,7 @@ export function Dashboard() {
   const weekPnL = weekTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" key={refreshKey}>
       {/* Welcome Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Trading Dashboard</h1>
@@ -131,8 +153,8 @@ export function Dashboard() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <PnLChart />
-        <OpenTrades />
+        <PnLChart key={`pnl-${refreshKey}`} />
+        <OpenTrades key={`open-${refreshKey}`} />
       </div>
 
       {/* Monthly Goal Progress */}
@@ -203,7 +225,7 @@ export function Dashboard() {
       )}
 
       {/* Trading Consistency */}
-      <ConsistencyGraph />
+      <ConsistencyGraph key={`consistency-${refreshKey}`} />
 
       {/* Recent Activity */}
       <div className="bg-white shadow-sm rounded-xl border border-gray-200">
