@@ -13,7 +13,8 @@ import {
   DollarSign,
   BarChart3,
   Zap,
-  Activity
+  Activity,
+  Upload
 } from 'lucide-react';
 import { useTradingData } from '../../hooks/useTradingData';
 import { Asset } from '../../types';
@@ -36,6 +37,233 @@ const popularAssets = {
   options: ['SPY Calls', 'QQQ Puts', 'TSLA Calls', 'AAPL Puts'],
 };
 
+// Indian stock data from CSV
+const indianStocks = [
+  { symbol: 'HINDPETRO', name: 'Hindustan Petroleum Corporation Limited', sector: 'Oil & Gas' },
+  { symbol: 'BPCL', name: 'Bharat Petroleum Corporation Limited', sector: 'Oil & Gas' },
+  { symbol: 'OIL', name: 'Oil India Limited', sector: 'Oil & Gas' },
+  { symbol: 'PHOENIXLTD', name: 'The Phoenix Mills Limited', sector: 'Real Estate' },
+  { symbol: 'ABCAPITAL', name: 'Aditya Birla Capital Ltd', sector: 'Financial Services' },
+  { symbol: 'IOC', name: 'Indian Oil Corporation Limited', sector: 'Oil & Gas' },
+  { symbol: 'HEROMOTOCO', name: 'Hero Motocorp Limited', sector: 'Automobile' },
+  { symbol: 'MANKIND', name: 'Mankind Pharma Ltd', sector: 'Pharmaceuticals' },
+  { symbol: 'TVSMOTOR', name: 'Tvs Motor Company Limited', sector: 'Automobile' },
+  { symbol: 'LAURUSLABS', name: 'Laurus Labs Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'COALINDIA', name: 'Coal India Limited', sector: 'Mining' },
+  { symbol: 'ABFRL', name: 'Aditya Birla Fashion And Retail Limited', sector: 'Consumer Goods' },
+  { symbol: 'RELIANCE', name: 'Reliance Industries Limited', sector: 'Oil & Gas' },
+  { symbol: 'AUBANK', name: 'AU Small Finance Bank', sector: 'Banking' },
+  { symbol: 'NHPC', name: 'Nhpc Limited', sector: 'Power' },
+  { symbol: 'HFCL', name: 'Himachal Futuristic Communications Limited', sector: 'Telecommunications' },
+  { symbol: 'BAJAJFINSV', name: 'Bajaj Finserv Limited', sector: 'Financial Services' },
+  { symbol: 'GAIL', name: 'Gail (india) Limited', sector: 'Oil & Gas' },
+  { symbol: 'DIVISLAB', name: 'Divi\'s Laboratories Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'AARTIIND', name: 'Aarti Industries Limited', sector: 'Chemicals' },
+  { symbol: 'BAJAJ-AUTO', name: 'Bajaj Auto Limited', sector: 'Automobile' },
+  { symbol: 'JSWENERGY', name: 'Jsw Energy Limited', sector: 'Power' },
+  { symbol: 'IIFL', name: 'Iifl Holdings Limited', sector: 'Financial Services' },
+  { symbol: 'PETRONET', name: 'Petronet Lng Limited', sector: 'Oil & Gas' },
+  { symbol: 'M&M', name: 'Mahindra & Mahindra Limited', sector: 'Automobile' },
+  { symbol: 'MARICO', name: 'Marico Limited', sector: 'Consumer Goods' },
+  { symbol: 'SHREECEM', name: 'Shree Cements Limited', sector: 'Cement' },
+  { symbol: 'SONACOMS', name: 'Sona BLW Precision Forgings Ltd', sector: 'Automobile' },
+  { symbol: 'LICHSGFIN', name: 'Lic Housing Finance Limited', sector: 'Financial Services' },
+  { symbol: 'GODREJCP', name: 'Godrej Consumer Products Limited', sector: 'Consumer Goods' },
+  { symbol: 'POLYCAB', name: 'Polycab India Ltd', sector: 'Electrical Equipment' },
+  { symbol: 'ONGC', name: 'Oil & Natural Gas Corporation Limited', sector: 'Oil & Gas' },
+  { symbol: 'IEX', name: 'Indian Energy Exchange Ltd', sector: 'Power' },
+  { symbol: 'IRFC', name: 'Indian Railway Finance Corporation Ltd', sector: 'Financial Services' },
+  { symbol: 'SJVN', name: 'Sjvn Limited', sector: 'Power' },
+  { symbol: 'IDEA', name: 'Idea Cellular Limited', sector: 'Telecommunications' },
+  { symbol: 'JSWSTEEL', name: 'Jsw Steel Limited', sector: 'Metals' },
+  { symbol: 'ULTRACEMCO', name: 'Ultratech Cement Limited', sector: 'Cement' },
+  { symbol: 'MAXHEALTH', name: 'Max Healthcare Institute Ltd', sector: 'Healthcare' },
+  { symbol: 'CAMS', name: 'Computer Age Management Services Ltd', sector: 'Financial Services' },
+  { symbol: 'EXIDEIND', name: 'Exide Industries Limited', sector: 'Automobile' },
+  { symbol: 'PAGEIND', name: 'Page Industries Limited', sector: 'Textiles' },
+  { symbol: 'RVNL', name: 'Rail Vikas Nigam Ltd', sector: 'Infrastructure' },
+  { symbol: 'KEI', name: 'Kei Industries Limited', sector: 'Electrical Equipment' },
+  { symbol: 'NTPC', name: 'Ntpc Limited', sector: 'Power' },
+  { symbol: 'TATASTEEL', name: 'Tata Steel Limited', sector: 'Metals' },
+  { symbol: 'HDFCAMC', name: 'HDFC Asset Management Company Ltd', sector: 'Financial Services' },
+  { symbol: 'DLF', name: 'Dlf Limited', sector: 'Real Estate' },
+  { symbol: 'IRCTC', name: 'Indian Railway Catering & Tourism Corporation Ltd', sector: 'Consumer Services' },
+  { symbol: 'POONAWALLA', name: 'Poonawalla Fincorp Ltd', sector: 'Financial Services' },
+  { symbol: 'MFSL', name: 'Max Financial Services Limited', sector: 'Financial Services' },
+  { symbol: 'LODHA', name: 'Macrotech Developers Ltd', sector: 'Real Estate' },
+  { symbol: 'BIOCON', name: 'Biocon Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'ETERNAL', name: 'Eternal Ltd', sector: 'Chemicals' },
+  { symbol: 'PFC', name: 'Power Finance Corporation Limited', sector: 'Financial Services' },
+  { symbol: 'CIPLA', name: 'Cipla Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'HDFCLIFE', name: 'HDFC Life Insurance Company Ltd', sector: 'Financial Services' },
+  { symbol: 'BALKRISIND', name: 'Balkrishna Industries Limited', sector: 'Automobile' },
+  { symbol: 'HINDCOPPER', name: 'Hindustan Copper Limited', sector: 'Metals' },
+  { symbol: 'GRASIM', name: 'Grasim Industries Limited', sector: 'Cement' },
+  { symbol: 'ASTRAL', name: 'Astral Poly Technik Limited', sector: 'Building Materials' },
+  { symbol: 'BOSCHLTD', name: 'Bosch Limited', sector: 'Automobile' },
+  { symbol: 'ZYDUSLIFE', name: 'Zydus Lifesciences Ltd', sector: 'Pharmaceuticals' },
+  { symbol: 'HAVELLS', name: 'Havells India Limited', sector: 'Electrical Equipment' },
+  { symbol: 'ICICIPRULI', name: 'Icici Prudential Life Insurance Company Limited', sector: 'Financial Services' },
+  { symbol: 'VEDL', name: 'Vedanta Limited', sector: 'Metals' },
+  { symbol: 'ICICIBANK', name: 'Icici Bank Limited', sector: 'Banking' },
+  { symbol: 'DABUR', name: 'Dabur India Limited', sector: 'Consumer Goods' },
+  { symbol: 'M&MFIN', name: 'Mahindra & Mahindra Financial Services Limited', sector: 'Financial Services' },
+  { symbol: 'HCLTECH', name: 'Hcl Technologies Limited', sector: 'IT Services' },
+  { symbol: 'DMART', name: 'Avenue Supermarts', sector: 'Consumer Services' },
+  { symbol: 'AMBUJACEM', name: 'Ambuja Cements Limited', sector: 'Cement' },
+  { symbol: 'CHAMBLFERT', name: 'Chambal Fertilizers & Chemicals Limited', sector: 'Fertilizers' },
+  { symbol: 'SYNGENE', name: 'Syngene International Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'RECLTD', name: 'Rural Electrification Corporation Limited', sector: 'Financial Services' },
+  { symbol: 'BANDHANBNK', name: 'Bandhan Bank Ltd', sector: 'Banking' },
+  { symbol: 'APLAPOLLO', name: 'Apl Apollo Tubes Limited', sector: 'Metals' },
+  { symbol: 'SAIL', name: 'Steel Authority Of India Limited', sector: 'Metals' },
+  { symbol: 'RBLBANK', name: 'Rbl Bank Limited', sector: 'Banking' },
+  { symbol: 'GMRAIRPORT', name: 'GMR Airports Ltd', sector: 'Infrastructure' },
+  { symbol: 'GLENMARK', name: 'Glenmark Pharmaceuticals Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'BAJFINANCE', name: 'Bajaj Finance Limited', sector: 'Financial Services' },
+  { symbol: 'PAYTM', name: 'One 97 Communications Ltd', sector: 'Financial Services' },
+  { symbol: 'ADANIENSOL', name: 'Adani Energy Solutions Ltd', sector: 'Power' },
+  { symbol: 'SBIN', name: 'State Bank Of India', sector: 'Banking' },
+  { symbol: 'PIIND', name: 'Pi Industries Limited', sector: 'Chemicals' },
+  { symbol: 'NBCC', name: 'Nbcc (india) Limited', sector: 'Infrastructure' },
+  { symbol: 'LICI', name: 'Life Insurance Corporation of India', sector: 'Financial Services' },
+  { symbol: 'TATAPOWER', name: 'Tata Power Company Limited', sector: 'Power' },
+  { symbol: 'TECHM', name: 'Tech Mahindra Limited', sector: 'IT Services' },
+  { symbol: 'CESC', name: 'Cesc Limited', sector: 'Power' },
+  { symbol: 'BRITANNIA', name: 'Britannia Industries Limited', sector: 'Consumer Goods' },
+  { symbol: 'PRESTIGE', name: 'Prestige Estates Projects Limited', sector: 'Real Estate' },
+  { symbol: 'NIFTY', name: 'NIFTY', sector: 'Index' },
+  { symbol: 'CONCOR', name: 'Container Corporation Of India Limited', sector: 'Logistics' },
+  { symbol: 'MANAPPURAM', name: 'Manappuram Finance Limited', sector: 'Financial Services' },
+  { symbol: 'PEL', name: 'Piramal Enterprises Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'TORNTPOWER', name: 'Torrent Power Limited', sector: 'Power' },
+  { symbol: 'TATACHEM', name: 'Tata Chemicals Limited', sector: 'Chemicals' },
+  { symbol: 'TATATECH', name: 'Tata Technologies Ltd', sector: 'IT Services' },
+  { symbol: 'MGL', name: 'Mahanagar Gas Limited', sector: 'Oil & Gas' },
+  { symbol: 'LT', name: 'Larsen & Toubro Limited', sector: 'Infrastructure' },
+  { symbol: 'LUPIN', name: 'Lupin Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'ACC', name: 'Acc Limited', sector: 'Cement' },
+  { symbol: 'IGL', name: 'Indraprastha Gas Limited', sector: 'Oil & Gas' },
+  { symbol: 'NMDC', name: 'Nmdc Limited', sector: 'Mining' },
+  { symbol: 'INDHOTEL', name: 'The Indian Hotels Company Limited', sector: 'Consumer Services' },
+  { symbol: 'INFY', name: 'Infosys Limited', sector: 'IT Services' },
+  { symbol: 'IREDA', name: 'Indian Renewable Energy Development Agency Ltd', sector: 'Financial Services' },
+  { symbol: 'AXISBANK', name: 'Axis Bank Limited', sector: 'Banking' },
+  { symbol: 'MUTHOOTFIN', name: 'Muthoot Finance Limited', sector: 'Financial Services' },
+  { symbol: 'SBILIFE', name: 'SBI Life Insurance Company Ltd', sector: 'Financial Services' },
+  { symbol: 'BLUESTARCO', name: 'Blue Star Limited', sector: 'Consumer Durables' },
+  { symbol: 'TATAMOTORS', name: 'Tata Motors Limited', sector: 'Automobile' },
+  { symbol: 'YESBANK', name: 'Yes Bank Limited', sector: 'Banking' },
+  { symbol: 'INDIGO', name: 'Interglobe Aviation Limited', sector: 'Transportation' },
+  { symbol: 'EICHERMOT', name: 'Eicher Motors Limited', sector: 'Automobile' },
+  { symbol: 'CUMMINSIND', name: 'Cummins India Limited', sector: 'Automobile' },
+  { symbol: 'BHARATFORG', name: 'Bharat Forge Limited', sector: 'Automobile' },
+  { symbol: 'UNIONBANK', name: 'Union Bank Of India', sector: 'Banking' },
+  { symbol: 'BANKNIFTY', name: 'BANKNIFTY', sector: 'Index' },
+  { symbol: 'INDIANB', name: 'Indian Bank', sector: 'Banking' },
+  { symbol: 'BSOFT', name: 'Birlasoft Ltd', sector: 'IT Services' },
+  { symbol: 'ASHOKLEY', name: 'Ashok Leyland Limited', sector: 'Automobile' },
+  { symbol: 'INDUSINDBK', name: 'Indusind Bank Limited', sector: 'Banking' },
+  { symbol: 'WIPRO', name: 'Wipro Limited', sector: 'IT Services' },
+  { symbol: 'HUDCO', name: 'Housing and Urban Development Corporation', sector: 'Financial Services' },
+  { symbol: 'TRENT', name: 'Trent Limited', sector: 'Consumer Services' },
+  { symbol: 'NCC', name: 'Ncc Limited', sector: 'Infrastructure' },
+  { symbol: 'ALKEM', name: 'Alkem Laboratories Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'DRREDDY', name: 'Dr. Reddy\'s Laboratories Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'CNXMIDCAP', name: 'CNXMIDCAP', sector: 'Index' },
+  { symbol: 'GRANULES', name: 'Granules India Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'ITC', name: 'Itc Limited', sector: 'Consumer Goods' },
+  { symbol: 'CROMPTON', name: 'Crompton Greaves Consumer Electricals Limited', sector: 'Electrical Equipment' },
+  { symbol: 'DELHIVERY', name: 'Delhivery Ltd', sector: 'Logistics' },
+  { symbol: 'IDFCFIRSTB', name: 'IDFC First Bank Ltd', sector: 'Banking' },
+  { symbol: 'PPLPHARMA', name: 'Piramal Pharma Ltd', sector: 'Pharmaceuticals' },
+  { symbol: 'NYKAA', name: 'FSN E-Commerce Ventures Ltd', sector: 'Consumer Services' },
+  { symbol: 'MOTHERSON', name: 'Motherson Sumi Systems Limited', sector: 'Automobile' },
+  { symbol: 'NESTLEIND', name: 'Nestle India Limited', sector: 'Consumer Goods' },
+  { symbol: 'INOXWIND', name: 'Inox Wind Limited', sector: 'Power' },
+  { symbol: 'TCS', name: 'Tata Consultancy Services Limited', sector: 'IT Services' },
+  { symbol: 'CANBK', name: 'Canara Bank', sector: 'Banking' },
+  { symbol: 'JSL', name: 'Jindal Stainless Limited', sector: 'Metals' },
+  { symbol: 'IRB', name: 'Irb Infrastructure Developers Limited', sector: 'Infrastructure' },
+  { symbol: 'HAL', name: 'Hindustan Aeronautics Ltd', sector: 'Aerospace & Defense' },
+  { symbol: 'TITAN', name: 'Titan Company Limited', sector: 'Consumer Goods' },
+  { symbol: 'JINDALSTEL', name: 'Jindal Steel & Power Limited', sector: 'Metals' },
+  { symbol: 'GODREJPROP', name: 'Godrej Properties Limited', sector: 'Real Estate' },
+  { symbol: 'PATANJALI', name: 'Patanjali Foods Ltd', sector: 'Consumer Goods' },
+  { symbol: 'KOTAKBANK', name: 'Kotak Mahindra Bank Limited', sector: 'Banking' },
+  { symbol: 'HINDALCO', name: 'Hindalco Industries Limited', sector: 'Metals' },
+  { symbol: 'HINDUNILVR', name: 'Hindustan Unilever Limited', sector: 'Consumer Goods' },
+  { symbol: 'ADANIGREEN', name: 'Adani Green Energy Ltd', sector: 'Power' },
+  { symbol: 'APOLLOHOSP', name: 'Apollo Hospitals Enterprise Limited', sector: 'Healthcare' },
+  { symbol: 'PNBHOUSING', name: 'Pnb Housing Finance Limited', sector: 'Financial Services' },
+  { symbol: 'UNOMINDA', name: 'Uno Minda Ltd', sector: 'Automobile' },
+  { symbol: 'MPHASIS', name: 'Mphasis Limited', sector: 'IT Services' },
+  { symbol: 'HINDZINC', name: 'Hindustan Zinc Limited', sector: 'Metals' },
+  { symbol: 'FEDERALBNK', name: 'The Federal Bank  Limited', sector: 'Banking' },
+  { symbol: 'ASIANPAINT', name: 'Asian Paints Limited', sector: 'Chemicals' },
+  { symbol: 'KAYNES', name: 'Kaynes Technology India Ltd', sector: 'Electronics' },
+  { symbol: 'POLICYBZR', name: 'PB Fintech Ltd', sector: 'Financial Services' },
+  { symbol: 'SBICARD', name: 'SBI Cards & Payment Services Ltd', sector: 'Financial Services' },
+  { symbol: 'BEL', name: 'Bharat Electronics Limited', sector: 'Aerospace & Defense' },
+  { symbol: 'INDUSTOWER', name: 'Indus Towers Ltd (Bharti Infratel)', sector: 'Telecommunications' },
+  { symbol: 'LTIM', name: 'LTI Mindtree Ltd', sector: 'IT Services' },
+  { symbol: 'DALBHARAT', name: 'Dalmia Bharat Limited', sector: 'Cement' },
+  { symbol: 'HDFCBANK', name: 'Hdfc Bank Limited', sector: 'Banking' },
+  { symbol: 'BHARTIARTL', name: 'Bharti Airtel Limited', sector: 'Telecommunications' },
+  { symbol: 'BANKINDIA', name: 'Bank Of India', sector: 'Banking' },
+  { symbol: 'SUNPHARMA', name: 'Sun Pharmaceuticals Industries Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'CHOLAFIN', name: 'Cholamandalam Investment And Finance Company Limited', sector: 'Financial Services' },
+  { symbol: 'ANGELONE', name: 'Angel One Ltd', sector: 'Financial Services' },
+  { symbol: 'ADANIENT', name: 'Adani Enterprises Limited', sector: 'Conglomerates' },
+  { symbol: 'OBEROIRLTY', name: 'Oberoi Realty Limited', sector: 'Real Estate' },
+  { symbol: 'ADANIPORTS', name: 'Adani Ports And Special Economic Zone Limited', sector: 'Infrastructure' },
+  { symbol: 'MARUTI', name: 'Maruti Suzuki India Limited', sector: 'Automobile' },
+  { symbol: 'JUBLFOOD', name: 'Jubilant Foodworks Limited', sector: 'Consumer Services' },
+  { symbol: 'TITAGARH', name: 'Titagarh Rail Systems Ltd', sector: 'Infrastructure' },
+  { symbol: 'SOLARINDS', name: 'Solar Industries India Limited', sector: 'Chemicals' },
+  { symbol: 'PERSISTENT', name: 'Persistent Systems Limited', sector: 'IT Services' },
+  { symbol: 'COLPAL', name: 'Colgate Palmolive (india) Limited', sector: 'Consumer Goods' },
+  { symbol: 'TORNTPHARM', name: 'Torrent Pharmaceuticals Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'VOLTAS', name: 'Voltas Limited', sector: 'Consumer Durables' },
+  { symbol: 'UPL', name: 'Upl Limited', sector: 'Chemicals' },
+  { symbol: 'AUROPHARMA', name: 'Aurobindo Pharma Limited', sector: 'Pharmaceuticals' },
+  { symbol: 'TATACONSUM', name: 'TATA Consumer Products Ltd', sector: 'Consumer Goods' },
+  { symbol: 'DIXON', name: 'Dixon Technologies', sector: 'Electronics' },
+  { symbol: 'ATGL', name: 'Adani Total Gas Ltd', sector: 'Oil & Gas' },
+  { symbol: 'COFORGE', name: 'Coforge (Niit Tech)', sector: 'IT Services' },
+  { symbol: 'KPITTECH', name: 'KPIT Technologies Ltd', sector: 'IT Services' },
+  { symbol: 'POWERGRID', name: 'Power Grid Corporation Of India Limited', sector: 'Power' },
+  { symbol: 'TIINDIA', name: 'Tube Investments of India Ltd', sector: 'Automobile' },
+  { symbol: 'VBL', name: 'Varun Beverages Limited', sector: 'Consumer Goods' },
+  { symbol: 'CYIENT', name: 'Cyient Limited', sector: 'IT Services' },
+  { symbol: 'BANKBARODA', name: 'Bank Of Baroda', sector: 'Banking' },
+  { symbol: 'PIDILITIND', name: 'Pidilite Industries Limited', sector: 'Chemicals' },
+  { symbol: 'NAUKRI', name: 'Info Edge (india) Limited', sector: 'Consumer Services' },
+  { symbol: 'PNB', name: 'Punjab National Bank', sector: 'Banking' },
+  { symbol: 'JIOFIN', name: 'Jio Financial Services Ltd', sector: 'Financial Services' },
+  { symbol: 'SRF', name: 'Srf Limited', sector: 'Chemicals' },
+  { symbol: 'SHRIRAMFIN', name: 'Shriram Finance Ltd', sector: 'Financial Services' },
+  { symbol: 'SIEMENS', name: 'Siemens Limited', sector: 'Industrial Manufacturing' },
+  { symbol: 'LTF', name: 'L&T Finance Ltd', sector: 'Financial Services' },
+  { symbol: 'CGPOWER', name: 'CG Power and Industrial Solutions Ltd', sector: 'Electrical Equipment' },
+  { symbol: 'BHEL', name: 'Bharat Heavy Electricals Limited', sector: 'Electrical Equipment' },
+  { symbol: 'SUPREMEIND', name: 'Supreme Industries Limited', sector: 'Chemicals' },
+  { symbol: 'ICICIGI', name: 'ICICI Lombard General Insurance Company Ltd', sector: 'Financial Services' },
+  { symbol: 'TATACOMM', name: 'Tata Communications Limited', sector: 'Telecommunications' },
+  { symbol: 'NATIONALUM', name: 'National Aluminium Company Limited', sector: 'Metals' },
+  { symbol: 'KALYANKJIL', name: 'Kalyan Jewellers India Ltd', sector: 'Consumer Goods' },
+  { symbol: 'MAZDOCK', name: 'Mazagon Dock Shipbuilders Ltd', sector: 'Aerospace & Defense' },
+  { symbol: 'FORTIS', name: 'Fortis Healthcare Limited', sector: 'Healthcare' },
+  { symbol: 'ABB', name: 'Abb India Limited', sector: 'Industrial Manufacturing' },
+  { symbol: 'TATAELXSI', name: 'Tata Elxsi Limited', sector: 'IT Services' },
+  { symbol: 'BDL', name: 'Bharat Dynamics Ltd', sector: 'Aerospace & Defense' },
+  { symbol: 'OFSS', name: 'Oracle Financial Services Software Limited', sector: 'IT Services' },
+  { symbol: 'MCX', name: 'Multi Commodity Exchange Of India Limited', sector: 'Financial Services' },
+  { symbol: 'CDSL', name: 'Central Depository Services Ltd', sector: 'Financial Services' },
+  { symbol: 'BSE', name: 'BSE (Bombay stock exchange)', sector: 'Financial Services' },
+  { symbol: 'UNITDSPR', name: 'United Spirits Ltd', sector: 'Consumer Goods' },
+];
+
 export function AssetManager() {
   const { assets, addAsset, updateAsset, deleteAsset } = useTradingData();
   const [showForm, setShowForm] = useState(false);
@@ -43,6 +271,7 @@ export function AssetManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showFavorites, setShowFavorites] = useState(false);
+  const [isAddingIndianStocks, setIsAddingIndianStocks] = useState(false);
   
   const [formData, setFormData] = useState({
     symbol: '',
@@ -113,6 +342,50 @@ export function AssetManager() {
     addAsset(assetData);
   };
 
+  const addAllIndianStocks = async () => {
+    setIsAddingIndianStocks(true);
+    
+    try {
+      // Check which stocks are already added
+      const existingSymbols = new Set(assets.map(asset => asset.symbol.toUpperCase()));
+      const stocksToAdd = indianStocks.filter(stock => !existingSymbols.has(stock.symbol.toUpperCase()));
+      
+      if (stocksToAdd.length === 0) {
+        alert('All Indian stocks are already added to your assets!');
+        setIsAddingIndianStocks(false);
+        return;
+      }
+
+      // Add stocks in batches to avoid overwhelming the UI
+      const batchSize = 20;
+      for (let i = 0; i < stocksToAdd.length; i += batchSize) {
+        const batch = stocksToAdd.slice(i, i + batchSize);
+        
+        batch.forEach(stock => {
+          const assetData = {
+            symbol: stock.symbol,
+            name: stock.name,
+            category: 'stocks' as Asset['category'],
+            exchange: 'NSE',
+            sector: stock.sector,
+            isActive: false, // Don't mark all as favorites by default
+          };
+          addAsset(assetData);
+        });
+        
+        // Small delay between batches
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      alert(`Successfully added ${stocksToAdd.length} Indian stocks to your assets!`);
+    } catch (error) {
+      console.error('Error adding Indian stocks:', error);
+      alert('Error adding Indian stocks. Please try again.');
+    } finally {
+      setIsAddingIndianStocks(false);
+    }
+  };
+
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = asset.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          asset.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -135,13 +408,23 @@ export function AssetManager() {
             Manage your trading assets for quick selection during trade entry
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Asset
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={addAllIndianStocks}
+            disabled={isAddingIndianStocks}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {isAddingIndianStocks ? 'Adding...' : 'Add Indian Stocks'}
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Asset
+          </button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -238,7 +521,7 @@ export function AssetManager() {
                   value={formData.exchange}
                   onChange={(e) => setFormData(prev => ({ ...prev, exchange: e.target.value }))}
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="e.g., NASDAQ, NYSE, Binance"
+                  placeholder="e.g., NASDAQ, NYSE, NSE"
                 />
               </div>
 
@@ -337,7 +620,7 @@ export function AssetManager() {
               <p className="mt-1 text-sm text-gray-500">
                 {searchTerm || selectedCategory !== 'all' || showFavorites
                   ? 'Try adjusting your search or filters'
-                  : 'Get started by adding your first trading asset'}
+                  : 'Get started by adding your first trading asset or use the "Add Indian Stocks" button'}
               </p>
             </div>
           ) : (
