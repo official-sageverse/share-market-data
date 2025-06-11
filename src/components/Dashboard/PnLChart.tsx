@@ -31,10 +31,12 @@ export function PnLChart() {
     );
   }
 
-  // Sort trades by date and calculate cumulative P&L
-  const sortedTrades = [...closedTrades].sort((a, b) => 
-    new Date(a.date + ' ' + a.time).getTime() - new Date(b.date + ' ' + b.time).getTime()
-  );
+  // Sort trades by date and time, then calculate cumulative P&L
+  const sortedTrades = [...closedTrades].sort((a, b) => {
+    const dateA = new Date(`${a.date} ${a.time || '00:00'}`);
+    const dateB = new Date(`${b.date} ${b.time || '00:00'}`);
+    return dateA.getTime() - dateB.getTime();
+  });
 
   let cumulativePnL = 0;
   const chartData = sortedTrades.map((trade, index) => {
@@ -45,21 +47,22 @@ export function PnLChart() {
       cumulative: cumulativePnL,
       date: trade.date,
       asset: trade.asset,
+      direction: trade.direction,
     };
   });
 
-  const maxPnL = Math.max(...chartData.map(d => d.cumulative));
-  const minPnL = Math.min(...chartData.map(d => d.cumulative));
-  const range = Math.max(Math.abs(maxPnL), Math.abs(minPnL));
+  const maxPnL = Math.max(...chartData.map(d => d.cumulative), 0);
+  const minPnL = Math.min(...chartData.map(d => d.cumulative), 0);
+  const range = Math.max(Math.abs(maxPnL), Math.abs(minPnL), 100); // Minimum range of 100
 
   const getBarHeight = (value: number) => {
     if (range === 0) return 0;
-    return Math.abs(value / range) * 100;
+    return Math.max(2, (Math.abs(value) / range) * 80); // Minimum 2% height, max 80%
   };
 
   const getBarPosition = (value: number) => {
     if (range === 0) return 50;
-    return 50 - (value / range) * 50;
+    return 50 - (value / range) * 40; // Center at 50%, ±40% range
   };
 
   const totalPnL = chartData[chartData.length - 1]?.cumulative || 0;
@@ -113,44 +116,58 @@ export function PnLChart() {
         </div>
 
         {/* Chart */}
-        <div className="relative">
-          <div className="flex items-end justify-between h-64 border-b border-gray-200">
+        <div className="relative bg-gray-50 rounded-lg p-4">
+          <div className="flex items-end justify-between h-64 relative">
             {/* Y-axis labels */}
-            <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 w-16">
-              <span>{formatCurrency(range, portfolio.currency)}</span>
-              <span>0</span>
-              <span>{formatCurrency(-range, portfolio.currency)}</span>
+            <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 w-20 pr-2">
+              <span className="text-right">{formatCurrency(range, portfolio.currency)}</span>
+              <span className="text-right">0</span>
+              <span className="text-right">{formatCurrency(-range, portfolio.currency)}</span>
             </div>
             
             {/* Zero line */}
-            <div className="absolute left-16 right-0 top-1/2 border-t border-gray-300 border-dashed"></div>
+            <div className="absolute left-20 right-4 top-1/2 border-t-2 border-gray-300 border-dashed"></div>
             
-            {/* Bars */}
-            <div className="flex items-end justify-between w-full ml-16 h-full">
+            {/* Chart area */}
+            <div className="flex items-end justify-between w-full ml-20 mr-4 h-full relative">
               {chartData.map((data, index) => (
-                <div key={index} className="flex flex-col items-center group relative flex-1 max-w-8">
+                <div key={index} className="flex flex-col items-center group relative" style={{ width: `${Math.max(100 / chartData.length, 2)}%` }}>
                   {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 hidden group-hover:block z-10">
+                  <div className="absolute bottom-full mb-2 hidden group-hover:block z-10 pointer-events-none">
                     <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
                       <div className="font-medium">{data.asset}</div>
-                      <div>Trade: {formatCurrency(data.pnl, portfolio.currency)}</div>
+                      <div className="flex items-center">
+                        <span className={`w-2 h-2 rounded-full mr-1 ${data.direction === 'long' ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                        Trade: {formatCurrency(data.pnl, portfolio.currency)}
+                      </div>
                       <div>Total: {formatCurrency(data.cumulative, portfolio.currency)}</div>
                       <div className="text-gray-300">{new Date(data.date).toLocaleDateString()}</div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                     </div>
                   </div>
                   
                   {/* Bar */}
                   <div 
-                    className="relative w-full max-w-6 mx-1"
+                    className="relative w-full max-w-8 mx-auto"
                     style={{ height: '100%' }}
                   >
                     <div
-                      className={`absolute w-full rounded-t transition-all duration-200 group-hover:opacity-80 ${
-                        data.cumulative >= 0 ? 'bg-green-500' : 'bg-red-500'
-                      }`}
+                      className={`absolute w-full transition-all duration-200 group-hover:opacity-80 ${
+                        data.cumulative >= 0 ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
+                      } ${data.cumulative >= 0 ? 'rounded-t' : 'rounded-b'}`}
                       style={{
                         height: `${getBarHeight(data.cumulative)}%`,
-                        bottom: `${getBarPosition(data.cumulative)}%`,
+                        [data.cumulative >= 0 ? 'bottom' : 'top']: '50%',
+                      }}
+                    />
+                    
+                    {/* Individual trade indicator */}
+                    <div
+                      className={`absolute w-full h-1 ${
+                        data.pnl >= 0 ? 'bg-green-700' : 'bg-red-700'
+                      }`}
+                      style={{
+                        [data.cumulative >= 0 ? 'bottom' : 'top']: `${50 + (data.cumulative >= 0 ? getBarHeight(data.cumulative) : -getBarHeight(data.cumulative))}%`,
                       }}
                     />
                   </div>
@@ -160,9 +177,35 @@ export function PnLChart() {
           </div>
           
           {/* X-axis */}
-          <div className="flex justify-between mt-2 ml-16 text-xs text-gray-500">
+          <div className="flex justify-between mt-2 ml-20 mr-4 text-xs text-gray-500">
             <span>Trade 1</span>
-            <span>Trade {chartData.length}</span>
+            {chartData.length > 1 && <span>Trade {chartData.length}</span>}
+          </div>
+        </div>
+
+        {/* Trade Performance Summary */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-3 bg-blue-50 rounded-lg">
+            <div className="text-lg font-bold text-blue-600">{chartData.length}</div>
+            <div className="text-xs text-gray-600">Total Trades</div>
+          </div>
+          <div className="text-center p-3 bg-green-50 rounded-lg">
+            <div className="text-lg font-bold text-green-600">
+              {chartData.length > 0 ? ((winningTrades / chartData.length) * 100).toFixed(1) : 0}%
+            </div>
+            <div className="text-xs text-gray-600">Win Rate</div>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-lg">
+            <div className="text-lg font-bold text-purple-600">
+              {winningTrades > 0 ? formatCurrency(chartData.filter(d => d.pnl > 0).reduce((sum, d) => sum + d.pnl, 0) / winningTrades, portfolio.currency) : formatCurrency(0, portfolio.currency)}
+            </div>
+            <div className="text-xs text-gray-600">Avg Win</div>
+          </div>
+          <div className="text-center p-3 bg-orange-50 rounded-lg">
+            <div className="text-lg font-bold text-orange-600">
+              {losingTrades > 0 ? formatCurrency(chartData.filter(d => d.pnl < 0).reduce((sum, d) => sum + d.pnl, 0) / losingTrades, portfolio.currency) : formatCurrency(0, portfolio.currency)}
+            </div>
+            <div className="text-xs text-gray-600">Avg Loss</div>
           </div>
         </div>
       </div>

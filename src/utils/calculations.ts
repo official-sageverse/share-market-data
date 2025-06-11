@@ -392,7 +392,7 @@ export function generateConsistencyData(trades: Trade[], startDate?: Date): Arra
   }
   
   // Populate with actual trade data
-  trades.filter(t => !t.isOpen && t.exitPrice).forEach(trade => {
+  trades.filter(t => !t.isOpen && t.exitPrice && t.pnl !== undefined).forEach(trade => {
     const date = trade.date;
     const pnl = trade.pnl || calculatePnL(trade);
     const existing = dailyData.get(date) || { pnl: 0, trades: 0 };
@@ -415,6 +415,8 @@ export function generateConsistencyData(trades: Trade[], startDate?: Date): Arra
 
 function calculateLevel(pnl: number, trades: number): number {
   if (trades === 0) return 0; // No trades
+  
+  // Calculate level based on P&L amount
   if (pnl > 0) {
     // Profit levels (1-4, green shades)
     if (pnl >= 1000) return 4; // Dark green
