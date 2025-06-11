@@ -29,7 +29,7 @@ export function TradeForm() {
     positionSize: '',
     strategy: '',
     notes: '',
-    isOpen: true,
+    isOpen: false, // Changed default to false (unchecked)
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -42,7 +42,7 @@ export function TradeForm() {
     if (!formData.asset) newErrors.asset = 'Asset is required';
     if (!formData.entryPrice) newErrors.entryPrice = 'Entry price is required';
     if (!formData.positionSize) newErrors.positionSize = 'Position size is required';
-    if (!formData.strategy) newErrors.strategy = 'Strategy is required';
+    // Removed strategy validation - it's now optional
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -57,7 +57,7 @@ export function TradeForm() {
       entryPrice: parseFloat(formData.entryPrice),
       exitPrice: formData.exitPrice ? parseFloat(formData.exitPrice) : undefined,
       positionSize: parseFloat(formData.positionSize),
-      strategy: formData.strategy,
+      strategy: formData.strategy || 'Not specified', // Default value if empty
       reasoning: formData.notes,
       marketConditions: '',
       tags: [],
@@ -82,7 +82,7 @@ export function TradeForm() {
       positionSize: '',
       strategy: '',
       notes: '',
-      isOpen: true,
+      isOpen: false, // Reset to default unchecked state
     });
     setErrors({});
     
@@ -254,23 +254,17 @@ export function TradeForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Strategy *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Strategy</label>
                 <select
                   value={formData.strategy}
                   onChange={(e) => handleInputChange('strategy', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
-                    errors.strategy ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-300'
-                  }`}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 >
-                  <option value="">Select strategy</option>
+                  <option value="">Select strategy (optional)</option>
                   {strategies.map(strategy => (
                     <option key={strategy} value={strategy}>{strategy}</option>
                   ))}
                 </select>
-                {errors.strategy && <p className="mt-2 text-sm text-red-600 flex items-center">
-                  <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
-                  {errors.strategy}
-                </p>}
               </div>
             </div>
 
@@ -342,7 +336,7 @@ export function TradeForm() {
                 </label>
               </div>
               <p className="mt-2 text-xs text-gray-600">
-                Uncheck this if you've already closed the position and want to enter the exit price
+                Check this if the position is still open and you haven't exited yet
               </p>
             </div>
 
