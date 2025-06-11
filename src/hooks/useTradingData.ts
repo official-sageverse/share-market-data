@@ -56,38 +56,77 @@ export function useTradingData() {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
-    setTrades(prev => [newTrade, ...prev]);
+    
+    // Force re-render by creating new array reference
+    setTrades(prev => {
+      const newTrades = [newTrade, ...prev];
+      // Trigger immediate state update
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('tradesUpdated', { detail: newTrades }));
+      }, 0);
+      return newTrades;
+    });
     
     // Update portfolio balance if trade is closed
     if (!trade.isOpen && trade.pnl !== undefined) {
-      setPortfolio(prev => ({
-        ...prev,
-        currentBalance: prev.currentBalance + trade.pnl - (trade.fees || 0),
-      }));
+      setPortfolio(prev => {
+        const newPortfolio = {
+          ...prev,
+          currentBalance: prev.currentBalance + trade.pnl - (trade.fees || 0),
+        };
+        // Trigger portfolio update event
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('portfolioUpdated', { detail: newPortfolio }));
+        }, 0);
+        return newPortfolio;
+      });
     }
   };
 
   const updateTrade = (id: string, updates: Partial<Trade>) => {
-    setTrades(prev => prev.map(trade => {
-      if (trade.id === id) {
-        const updatedTrade = { ...trade, ...updates };
-        
-        // If trade is being closed, update portfolio balance
-        if (trade.isOpen && !updatedTrade.isOpen && updatedTrade.pnl !== undefined) {
-          setPortfolio(prevPortfolio => ({
-            ...prevPortfolio,
-            currentBalance: prevPortfolio.currentBalance + updatedTrade.pnl - (updatedTrade.fees || 0),
-          }));
+    setTrades(prev => {
+      const newTrades = prev.map(trade => {
+        if (trade.id === id) {
+          const updatedTrade = { ...trade, ...updates };
+          
+          // If trade is being closed, update portfolio balance
+          if (trade.isOpen && !updatedTrade.isOpen && updatedTrade.pnl !== undefined) {
+            setPortfolio(prevPortfolio => {
+              const newPortfolio = {
+                ...prevPortfolio,
+                currentBalance: prevPortfolio.currentBalance + updatedTrade.pnl - (updatedTrade.fees || 0),
+              };
+              // Trigger portfolio update event
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('portfolioUpdated', { detail: newPortfolio }));
+              }, 0);
+              return newPortfolio;
+            });
+          }
+          
+          return updatedTrade;
         }
-        
-        return updatedTrade;
-      }
-      return trade;
-    }));
+        return trade;
+      });
+      
+      // Trigger trades update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('tradesUpdated', { detail: newTrades }));
+      }, 0);
+      
+      return newTrades;
+    });
   };
 
   const deleteTrade = (id: string) => {
-    setTrades(prev => prev.filter(trade => trade.id !== id));
+    setTrades(prev => {
+      const newTrades = prev.filter(trade => trade.id !== id);
+      // Trigger trades update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('tradesUpdated', { detail: newTrades }));
+      }, 0);
+      return newTrades;
+    });
   };
 
   const addGoal = (goal: Omit<Goal, 'id' | 'createdAt'>) => {
@@ -96,17 +135,38 @@ export function useTradingData() {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
-    setGoals(prev => [newGoal, ...prev]);
+    setGoals(prev => {
+      const newGoals = [newGoal, ...prev];
+      // Trigger goals update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('goalsUpdated', { detail: newGoals }));
+      }, 0);
+      return newGoals;
+    });
   };
 
   const updateGoal = (id: string, updates: Partial<Goal>) => {
-    setGoals(prev => prev.map(goal => 
-      goal.id === id ? { ...goal, ...updates } : goal
-    ));
+    setGoals(prev => {
+      const newGoals = prev.map(goal => 
+        goal.id === id ? { ...goal, ...updates } : goal
+      );
+      // Trigger goals update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('goalsUpdated', { detail: newGoals }));
+      }, 0);
+      return newGoals;
+    });
   };
 
   const deleteGoal = (id: string) => {
-    setGoals(prev => prev.filter(goal => goal.id !== id));
+    setGoals(prev => {
+      const newGoals = prev.filter(goal => goal.id !== id);
+      // Trigger goals update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('goalsUpdated', { detail: newGoals }));
+      }, 0);
+      return newGoals;
+    });
   };
 
   const addJournalEntry = (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => {
@@ -124,17 +184,38 @@ export function useTradingData() {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
-    setAssets(prev => [newAsset, ...prev]);
+    setAssets(prev => {
+      const newAssets = [newAsset, ...prev];
+      // Trigger assets update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('assetsUpdated', { detail: newAssets }));
+      }, 0);
+      return newAssets;
+    });
   };
 
   const updateAsset = (id: string, updates: Partial<Asset>) => {
-    setAssets(prev => prev.map(asset => 
-      asset.id === id ? { ...asset, ...updates } : asset
-    ));
+    setAssets(prev => {
+      const newAssets = prev.map(asset => 
+        asset.id === id ? { ...asset, ...updates } : asset
+      );
+      // Trigger assets update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('assetsUpdated', { detail: newAssets }));
+      }, 0);
+      return newAssets;
+    });
   };
 
   const deleteAsset = (id: string) => {
-    setAssets(prev => prev.filter(asset => asset.id !== id));
+    setAssets(prev => {
+      const newAssets = prev.filter(asset => asset.id !== id);
+      // Trigger assets update event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('assetsUpdated', { detail: newAssets }));
+      }, 0);
+      return newAssets;
+    });
   };
 
   const exportData = () => {
@@ -153,12 +234,32 @@ export function useTradingData() {
   const importData = (jsonData: string) => {
     try {
       const data = JSON.parse(jsonData);
-      if (data.trades) setTrades(data.trades);
-      if (data.portfolio) setPortfolio(data.portfolio);
-      if (data.goals) setGoals(data.goals);
+      if (data.trades) {
+        setTrades(data.trades);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('tradesUpdated', { detail: data.trades }));
+        }, 0);
+      }
+      if (data.portfolio) {
+        setPortfolio(data.portfolio);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('portfolioUpdated', { detail: data.portfolio }));
+        }, 0);
+      }
+      if (data.goals) {
+        setGoals(data.goals);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('goalsUpdated', { detail: data.goals }));
+        }, 0);
+      }
       if (data.journalEntries) setJournalEntries(data.journalEntries);
       if (data.userSettings) setUserSettings(data.userSettings);
-      if (data.assets) setAssets(data.assets);
+      if (data.assets) {
+        setAssets(data.assets);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('assetsUpdated', { detail: data.assets }));
+        }, 0);
+      }
       return true;
     } catch (error) {
       console.error('Error importing data:', error);

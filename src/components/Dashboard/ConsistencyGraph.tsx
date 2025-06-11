@@ -67,19 +67,40 @@ export function ConsistencyGraph() {
     weeks.push(weekData);
   }
 
-  const getLevelColor = (level: number): string => {
-    const colors = {
-      0: 'bg-gray-100 hover:bg-gray-200',      // No trades
-      1: 'bg-green-100 hover:bg-green-200',     // Small profit
-      2: 'bg-green-200 hover:bg-green-300',     // Medium profit
-      3: 'bg-green-400 hover:bg-green-500',     // Good profit
-      4: 'bg-green-600 hover:bg-green-700',     // Excellent profit
-      '-1': 'bg-red-100 hover:bg-red-200',    // Small loss
-      '-2': 'bg-red-200 hover:bg-red-300',    // Medium loss
-      '-3': 'bg-red-400 hover:bg-red-500',    // Bad loss
-      '-4': 'bg-red-600 hover:bg-red-700',    // Terrible loss
-    };
-    return colors[level as keyof typeof colors] || 'bg-gray-100 hover:bg-gray-200';
+  const getLevelColor = (level: number, pnl: number): string => {
+    if (level === 0) return 'bg-gray-100'; // No trades
+    
+    if (pnl > 0) {
+      // Profit levels - green shades with better visibility
+      switch (level) {
+        case 1: return 'bg-green-200'; // Light green - more visible
+        case 2: return 'bg-green-300'; // Medium green
+        case 3: return 'bg-green-500'; // Good green
+        case 4: return 'bg-green-700'; // Dark green
+        default: return 'bg-green-200';
+      }
+    } else {
+      // Loss levels - red fills with dark red borders
+      switch (level) {
+        case -1: return 'bg-red-200'; // Light red - more visible
+        case -2: return 'bg-red-300'; // Medium red
+        case -3: return 'bg-red-500'; // Bad red
+        case -4: return 'bg-red-700'; // Dark red
+        default: return 'bg-red-200';
+      }
+    }
+  };
+
+  const getBorderColor = (level: number, pnl: number): string => {
+    if (level === 0) return 'border-gray-300'; // No trades
+    
+    if (pnl > 0) {
+      // Profit - green borders
+      return 'border-green-600';
+    } else {
+      // Loss - dark red borders for better visibility
+      return 'border-red-800';
+    }
   };
 
   const totalTradingDays = filteredData.filter(d => d.trades > 0).length;
@@ -118,24 +139,27 @@ export function ConsistencyGraph() {
       <div className="px-6 py-6">
         <div className="mb-6">
           <p className="text-sm text-gray-500 mb-3">
-            Each square represents a trading day. Darker colors indicate higher profits/losses.
+            Each square represents a trading day. Green for profits, red for losses. Darker colors = higher amounts.
           </p>
           
-          {/* Legend */}
+          {/* Enhanced Legend */}
           <div className="flex items-center justify-between text-xs text-gray-500 mb-6">
-            <span>Less</span>
-            <div className="flex space-x-1">
-              <div className="w-3 h-3 bg-gray-100 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-red-100 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-red-200 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-red-400 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-red-600 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-green-100 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-green-200 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-green-400 rounded-sm border border-gray-200"></div>
-              <div className="w-3 h-3 bg-green-600 rounded-sm border border-gray-200"></div>
+            <span className="font-medium">Less</span>
+            <div className="flex space-x-1 items-center">
+              <div className="w-3 h-3 bg-gray-100 rounded-sm border border-gray-300"></div>
+              <span className="text-xs mx-1">No trades</span>
+              <div className="w-3 h-3 bg-red-200 rounded-sm border-2 border-red-800"></div>
+              <div className="w-3 h-3 bg-red-300 rounded-sm border-2 border-red-800"></div>
+              <div className="w-3 h-3 bg-red-500 rounded-sm border-2 border-red-800"></div>
+              <div className="w-3 h-3 bg-red-700 rounded-sm border-2 border-red-800"></div>
+              <span className="text-xs mx-2">Loss</span>
+              <div className="w-3 h-3 bg-green-200 rounded-sm border border-green-600"></div>
+              <div className="w-3 h-3 bg-green-300 rounded-sm border border-green-600"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-sm border border-green-600"></div>
+              <div className="w-3 h-3 bg-green-700 rounded-sm border border-green-600"></div>
+              <span className="text-xs mx-1">Profit</span>
             </div>
-            <span>More</span>
+            <span className="font-medium">More</span>
           </div>
         </div>
 
@@ -185,7 +209,7 @@ export function ConsistencyGraph() {
                       return (
                         <div
                           key={dayData.date}
-                          className={`w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 border border-gray-200 ${getLevelColor(dayData.level)}`}
+                          className={`w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 border-2 hover:scale-125 hover:z-10 relative ${getLevelColor(dayData.level, dayData.pnl)} ${getBorderColor(dayData.level, dayData.pnl)}`}
                           title={`${new Date(dayData.date).toLocaleDateString()}: ${
                             dayData.trades === 0 
                               ? 'No trades' 
@@ -203,15 +227,15 @@ export function ConsistencyGraph() {
 
         {/* Summary Stats */}
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+          <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
             <div className="text-2xl font-bold text-gray-900">{totalTradingDays}</div>
             <div className="text-sm text-gray-600">Trading Days</div>
           </div>
-          <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
+          <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
             <div className="text-2xl font-bold text-green-600">{profitableDays}</div>
             <div className="text-sm text-gray-600">Profitable Days</div>
           </div>
-          <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+          <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
             <div className="text-2xl font-bold text-blue-600">{consistencyRate.toFixed(1)}%</div>
             <div className="text-sm text-gray-600">Daily Win Rate</div>
           </div>
@@ -227,7 +251,7 @@ export function ConsistencyGraph() {
                 .slice(-5)
                 .reverse()
                 .map((day, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg border">
                     <div>
                       <span className="text-sm font-medium text-gray-900">
                         {new Date(day.date).toLocaleDateString()}

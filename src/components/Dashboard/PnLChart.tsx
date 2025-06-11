@@ -53,14 +53,9 @@ export function PnLChart() {
 
   const maxPnL = Math.max(...chartData.map(d => d.cumulative), 0);
   const minPnL = Math.min(...chartData.map(d => d.cumulative), 0);
-  const range = Math.max(Math.abs(maxPnL), Math.abs(minPnL), 100); // Minimum range of 100
+  const range = Math.max(Math.abs(maxPnL), Math.abs(minPnL), 100);
 
-  const getBarHeight = (value: number) => {
-    if (range === 0) return 0;
-    return Math.max(2, (Math.abs(value) / range) * 80); // Minimum 2% height, max 80%
-  };
-
-  const getBarPosition = (value: number) => {
+  const getYPosition = (value: number) => {
     if (range === 0) return 50;
     return 50 - (value / range) * 40; // Center at 50%, ±40% range
   };
@@ -115,26 +110,98 @@ export function PnLChart() {
           </div>
         </div>
 
-        {/* Chart */}
-        <div className="relative bg-gray-50 rounded-lg p-4">
-          <div className="flex items-end justify-between h-64 relative">
+        {/* Line Chart */}
+        <div className="relative bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg p-6">
+          <div className="relative h-80">
             {/* Y-axis labels */}
             <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 w-20 pr-2">
-              <span className="text-right">{formatCurrency(range, portfolio.currency)}</span>
-              <span className="text-right">0</span>
-              <span className="text-right">{formatCurrency(-range, portfolio.currency)}</span>
+              <span className="text-right font-medium">{formatCurrency(range, portfolio.currency)}</span>
+              <span className="text-right font-medium text-gray-700">0</span>
+              <span className="text-right font-medium">{formatCurrency(-range, portfolio.currency)}</span>
             </div>
             
-            {/* Zero line */}
-            <div className="absolute left-20 right-4 top-1/2 border-t-2 border-gray-300 border-dashed"></div>
+            {/* Grid lines */}
+            <div className="absolute left-20 right-4 top-0 bottom-0">
+              {/* Horizontal grid lines */}
+              <div className="absolute top-0 left-0 right-0 border-t border-gray-200"></div>
+              <div className="absolute top-1/2 left-0 right-0 border-t-2 border-gray-400 border-dashed"></div>
+              <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200"></div>
+              
+              {/* Vertical grid lines */}
+              {chartData.map((_, index) => {
+                if (index % Math.ceil(chartData.length / 8) === 0) {
+                  return (
+                    <div
+                      key={index}
+                      className="absolute top-0 bottom-0 border-l border-gray-200"
+                      style={{ left: `${(index / (chartData.length - 1)) * 100}%` }}
+                    ></div>
+                  );
+                }
+                return null;
+              })}
+            </div>
             
             {/* Chart area */}
-            <div className="flex items-end justify-between w-full ml-20 mr-4 h-full relative">
+            <div className="absolute left-20 right-4 top-0 bottom-0">
+              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* Area fill */}
+                <defs>
+                  <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor={totalPnL >= 0 ? "#10b981" : "#ef4444"} stopOpacity="0.3" />
+                    <stop offset="100%" stopColor={totalPnL >= 0 ? "#10b981" : "#ef4444"} stopOpacity="0.05" />
+                  </linearGradient>
+                </defs>
+                
+                {/* Area under curve */}
+                <path
+                  d={`M 0 50 ${chartData.map((data, index) => 
+                    `L ${(index / (chartData.length - 1)) * 100} ${getYPosition(data.cumulative)}`
+                  ).join(' ')} L 100 50 Z`}
+                  fill="url(#areaGradient)"
+                />
+                
+                {/* Main line */}
+                <polyline
+                  points={chartData.map((data, index) => 
+                    `${(index / (chartData.length - 1)) * 100},${getYPosition(data.cumulative)}`
+                  ).join(' ')}
+                  fill="none"
+                  stroke={totalPnL >= 0 ? "#10b981" : "#ef4444"}
+                  strokeWidth="0.5"
+                  className="drop-shadow-sm"
+                />
+                
+                {/* Data points */}
+                {chartData.map((data, index) => (
+                  <g key={index}>
+                    <circle
+                      cx={(index / (chartData.length - 1)) * 100}
+                      cy={getYPosition(data.cumulative)}
+                      r="0.8"
+                      fill={data.pnl >= 0 ? "#10b981" : "#ef4444"}
+                      stroke="white"
+                      strokeWidth="0.3"
+                      className="hover:r-1.5 transition-all duration-200 cursor-pointer"
+                    />
+                  </g>
+                ))}
+              </svg>
+              
+              {/* Hover tooltips */}
               {chartData.map((data, index) => (
-                <div key={index} className="flex flex-col items-center group relative" style={{ width: `${Math.max(100 / chartData.length, 2)}%` }}>
-                  {/* Tooltip */}
+                <div
+                  key={index}
+                  className="absolute group"
+                  style={{
+                    left: `${(index / (chartData.length - 1)) * 100}%`,
+                    top: `${getYPosition(data.cumulative)}%`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                >
+                  <div className="w-4 h-4 rounded-full bg-transparent group-hover:bg-blue-100 transition-colors cursor-pointer"></div>
                   <div className="absolute bottom-full mb-2 hidden group-hover:block z-10 pointer-events-none">
-                    <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-xl">
                       <div className="font-medium">{data.asset}</div>
                       <div className="flex items-center">
                         <span className={`w-2 h-2 rounded-full mr-1 ${data.direction === 'long' ? 'bg-green-400' : 'bg-red-400'}`}></span>
@@ -145,40 +212,17 @@ export function PnLChart() {
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                     </div>
                   </div>
-                  
-                  {/* Bar */}
-                  <div 
-                    className="relative w-full max-w-8 mx-auto"
-                    style={{ height: '100%' }}
-                  >
-                    <div
-                      className={`absolute w-full transition-all duration-200 group-hover:opacity-80 ${
-                        data.cumulative >= 0 ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
-                      } ${data.cumulative >= 0 ? 'rounded-t' : 'rounded-b'}`}
-                      style={{
-                        height: `${getBarHeight(data.cumulative)}%`,
-                        [data.cumulative >= 0 ? 'bottom' : 'top']: '50%',
-                      }}
-                    />
-                    
-                    {/* Individual trade indicator */}
-                    <div
-                      className={`absolute w-full h-1 ${
-                        data.pnl >= 0 ? 'bg-green-700' : 'bg-red-700'
-                      }`}
-                      style={{
-                        [data.cumulative >= 0 ? 'bottom' : 'top']: `${50 + (data.cumulative >= 0 ? getBarHeight(data.cumulative) : -getBarHeight(data.cumulative))}%`,
-                      }}
-                    />
-                  </div>
                 </div>
               ))}
             </div>
           </div>
           
           {/* X-axis */}
-          <div className="flex justify-between mt-2 ml-20 mr-4 text-xs text-gray-500">
+          <div className="flex justify-between mt-4 ml-20 mr-4 text-xs text-gray-500">
             <span>Trade 1</span>
+            {chartData.length > 10 && (
+              <span>Trade {Math.floor(chartData.length / 2)}</span>
+            )}
             {chartData.length > 1 && <span>Trade {chartData.length}</span>}
           </div>
         </div>
